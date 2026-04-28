@@ -50,6 +50,7 @@ const toolImage = document.getElementById("tool-image");
 const ft = document.getElementById("float-toolbar");
 const ftCount = document.getElementById("ft-count");
 const bgPop = document.getElementById("bg-popover");
+const borderPop = document.getElementById("border-popover");
 const helpPop = document.getElementById("help-popover");
 
 // ============================================================
@@ -232,12 +233,23 @@ function updateNodeElement(el, node) {
     el.style.textDecoration = s.underline ? "underline" : "none";
     el.style.textAlign = s.align || "left";
     el.style.borderRadius = (s.radius ?? 12) + "px";
+    applyBorder(el, s);
     if (el.getAttribute("contenteditable") !== "true") el.textContent = node.content || "";
   } else if (node.type === "image") {
     const s = node.style || {};
     el.style.width = node.w + "px"; el.style.height = node.h + "px";
     el.style.maxWidth = "";
     el.style.borderRadius = (s.radius ?? 12) + "px";
+    applyBorder(el, s);
+  }
+}
+
+function applyBorder(el, s) {
+  const w = +s.borderWidth || 0;
+  if (w > 0) {
+    el.style.border = `${w}px solid ${s.borderColor || "#0e0f0c"}`;
+  } else {
+    el.style.border = "";
   }
 }
 
@@ -903,7 +915,16 @@ const fEl = {
   bgCurrent: document.getElementById("ft-bg-current"),
   bgSwatches: document.getElementById("bg-swatches"),
   paperSwatches: document.getElementById("paper-swatches"),
-  radius: document.getElementById("ft-radius"),
+  borderPop: document.getElementById("ft-border-pop"),
+  borderSwatch: document.getElementById("ft-border-swatch"),
+  borderColor: document.getElementById("ft-border-color"),
+  borderCurrent: document.getElementById("ft-border-current"),
+  borderClear: document.getElementById("ft-border-clear"),
+  borderSwatches: document.getElementById("border-swatches"),
+  borderWidth: document.getElementById("ft-border-width"),
+  borderWidthVal: document.getElementById("ft-border-width-val"),
+  borderRadius: document.getElementById("ft-border-radius"),
+  borderRadiusVal: document.getElementById("ft-border-radius-val"),
   stroke: document.getElementById("ft-stroke"),
   strokeSwatch: document.getElementById("ft-stroke-swatch"),
   lineWidth: document.getElementById("ft-line-width"),
@@ -928,6 +949,17 @@ for (const c of SWATCH_COLORS) {
   sw.addEventListener("click", () => { setStyle({ bg: c }); refreshBgPopover(); });
   fEl.bgSwatches.appendChild(sw);
 }
+// Border swatches mirror the general palette
+for (const c of SWATCH_COLORS) {
+  const sw = document.createElement("div");
+  sw.className = "swatch"; sw.style.background = c; sw.dataset.color = c;
+  sw.addEventListener("click", () => {
+    const cur = +(getPrimary()?.style?.borderWidth || 0);
+    setStyle({ borderColor: c, borderWidth: cur > 0 ? cur : 2 });
+    refreshBorderPopover();
+  });
+  fEl.borderSwatches.appendChild(sw);
+}
 
 function syncFloatToolbar() {
   const sel = getSelectedNodes();
@@ -938,7 +970,8 @@ function syncFloatToolbar() {
 
   const type = selectionType();
   ft.querySelectorAll('[data-for]').forEach((g) => {
-    g.style.display = (type === g.dataset.for) ? "" : "none";
+    const fors = g.dataset.for.split(/\s+/);
+    g.style.display = fors.includes(type) ? "" : "none";
   });
 
   const primary = getPrimary();
@@ -957,13 +990,21 @@ function syncFloatToolbar() {
     ft.querySelectorAll('.ft-btn[data-toggle]').forEach((b) => b.classList.toggle("active", !!s[b.dataset.toggle]));
     ft.querySelectorAll('.ft-btn[data-align]').forEach((b) => b.classList.toggle("active", s.align === b.dataset.align));
   } else if (type === "image") {
-    if (document.activeElement !== fEl.radius) fEl.radius.value = primary.style?.radius ?? 12;
+    // border controls are shared via popover — see syncBorderIndicator
   } else if (type === "line") {
     const s = primary.style || {};
     fEl.stroke.value = s.stroke || "#0e0f0c";
     fEl.strokeSwatch.style.color = s.stroke || "#0e0f0c";
     if (document.activeElement !== fEl.lineWidth) fEl.lineWidth.value = s.width || 2;
     fEl.arrow.classList.toggle("active", s.arrow !== false);
+  }
+
+  // Border indicator (text + image)
+  if (type === "text" || type === "image") {
+    const s = primary.style || {};
+    const w = +s.borderWidth || 0;
+    fEl.borderSwatch.classList.toggle("empty", w === 0);
+    fEl.borderSwatch.style.color = w > 0 ? (s.borderColor || "#0e0f0c") : "var(--muted-2)";
   }
 }
 
@@ -994,7 +1035,22 @@ fEl.sizeDown.addEventListener("click", () => { const n = getPrimary(); if (!n) r
 fEl.color.addEventListener("input", () => setStyle({ color: fEl.color.value }));
 fEl.bg.addEventListener("input", () => setStyle({ bg: fEl.bg.value }));
 fEl.bgClear.addEventListener("click", () => { setStyle({ bg: "transparent" }); refreshBgPopover(); });
-fEl.radius.addEventListener("input", () => setStyle({ radius: +fEl.radius.value }));
+fEl.borderColor.addEventListener("input", () => {
+  const cur = +(getPrimary()?.style?.borderWidth || 0);
+  setStyle({ borderColor: fEl.borderColor.value, borderWidth: cur > 0 ? cur : 2 });
+  refreshBorderPopover();
+});
+fEl.borderClear.addEventListener("click", () => { setStyle({ borderWidth: 0 }); refreshBorderPopover(); });
+fEl.borderWidth.addEventListener("input", () => {
+  const v = +fEl.borderWidth.value;
+  fEl.borderWidthVal.textContent = v + "px";
+  setStyle({ borderWidth: v });
+});
+fEl.borderRadius.addEventListener("input", () => {
+  const v = +fEl.borderRadius.value;
+  fEl.borderRadiusVal.textContent = v + "px";
+  setStyle({ radius: v });
+});
 fEl.stroke.addEventListener("input", () => setStyle({ stroke: fEl.stroke.value }));
 fEl.lineWidth.addEventListener("input", () => setStyle({ width: +fEl.lineWidth.value }));
 fEl.arrow.addEventListener("click", () => {
@@ -1034,6 +1090,28 @@ fEl.bgPop.addEventListener("click", (e) => {
     positionPopoverNear(bgPop, fEl.bgPop);
   } else closePopover(bgPop);
 });
+fEl.borderPop.addEventListener("click", (e) => {
+  e.stopPropagation();
+  if (borderPop.hidden) {
+    borderPop.hidden = false; refreshBorderPopover();
+    positionPopoverNear(borderPop, fEl.borderPop);
+  } else closePopover(borderPop);
+});
+function refreshBorderPopover() {
+  const node = getPrimary(); if (!node) return;
+  const s = node.style || {};
+  const w = +s.borderWidth || 0;
+  const c = s.borderColor || "#0e0f0c";
+  const r = s.radius ?? 12;
+  fEl.borderColor.value = c;
+  fEl.borderCurrent.style.background = c;
+  fEl.borderWidth.value = w;
+  fEl.borderWidthVal.textContent = w + "px";
+  fEl.borderRadius.value = r;
+  fEl.borderRadiusVal.textContent = r + "px";
+  borderPop.querySelectorAll(".swatch").forEach((sw) =>
+    sw.classList.toggle("active", c.toLowerCase() === sw.dataset.color.toLowerCase() && w > 0));
+}
 function refreshBgPopover() {
   const node = getPrimary(); if (!node) return;
   const bg = node.style?.bg;
@@ -1053,6 +1131,7 @@ function positionPopoverNear(pop, anchor) {
 function closePopover(pop) { pop.hidden = true; }
 document.addEventListener("mousedown", (e) => {
   if (!bgPop.hidden && !bgPop.contains(e.target) && !fEl.bgPop.contains(e.target)) closePopover(bgPop);
+  if (!borderPop.hidden && !borderPop.contains(e.target) && !fEl.borderPop.contains(e.target)) closePopover(borderPop);
   if (!helpPop.hidden && !helpPop.contains(e.target) && !document.getElementById("btn-help").contains(e.target)) closePopover(helpPop);
 });
 document.getElementById("btn-help").addEventListener("click", (e) => {
@@ -1167,7 +1246,7 @@ window.addEventListener("keydown", (e) => {
   if (e.key === "Delete" || e.key === "Backspace") {
     if (state.selectedIds.size) { e.preventDefault(); deleteSelected(); }
   } else if (e.key === "Escape") {
-    selectNode(null); closePopover(bgPop); closePopover(helpPop);
+    selectNode(null); closePopover(bgPop); closePopover(borderPop); closePopover(helpPop);
   } else if (e.key === "0") {
     state.pan = { x: 0, y: 0 }; state.zoom = 1; applyTransform(); save();
   } else if (e.key === "?") {
@@ -1289,6 +1368,11 @@ function exportPNG() {
         ctx.fillStyle = s.bg;
         roundRect(ctx, x, y, r.w, r.h, s.radius ?? 12); ctx.fill();
       }
+      if ((+s.borderWidth || 0) > 0) {
+        ctx.strokeStyle = s.borderColor || "#0e0f0c";
+        ctx.lineWidth = +s.borderWidth;
+        roundRect(ctx, x, y, r.w, r.h, s.radius ?? 12); ctx.stroke();
+      }
       ctx.fillStyle = s.color || "#0e0f0c";
       const weight = s.bold ? "700" : "400";
       const style = s.italic ? "italic" : "normal";
@@ -1314,10 +1398,16 @@ function exportPNG() {
       pending++;
       const img = new Image();
       img.onload = () => {
+        const s = n.style || {};
         ctx.save();
-        roundRect(ctx, x, y, r.w, r.h, n.style?.radius ?? 12); ctx.clip();
+        roundRect(ctx, x, y, r.w, r.h, s.radius ?? 12); ctx.clip();
         ctx.drawImage(img, x, y, r.w, r.h);
         ctx.restore();
+        if ((+s.borderWidth || 0) > 0) {
+          ctx.strokeStyle = s.borderColor || "#0e0f0c";
+          ctx.lineWidth = +s.borderWidth;
+          roundRect(ctx, x, y, r.w, r.h, s.radius ?? 12); ctx.stroke();
+        }
         pending--;
         if (pending === 0) finalize();
       };

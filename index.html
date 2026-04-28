@@ -160,11 +160,11 @@
       </button>
     </div>
 
-    <div class="ft-group" data-for="image">
-      <label class="ft-slider" title="Corner radius">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18V8a4 4 0 0 1 4-4h10"/></svg>
-        <input type="range" id="ft-radius" min="0" max="64" />
-      </label>
+    <div class="ft-divider" data-for="text image"></div>
+    <div class="ft-group" data-for="text image">
+      <button class="ft-btn icon" id="ft-border-pop" title="Border">
+        <span class="ft-border-icon" id="ft-border-swatch"></span>
+      </button>
     </div>
 
     <div class="ft-group" data-for="line">
@@ -217,6 +217,29 @@
     <div class="swatch-row" id="paper-swatches"></div>
     <div class="popover-label">All colors</div>
     <div class="swatch-grid" id="bg-swatches"></div>
+  </div>
+
+  <!-- Border popover -->
+  <div id="border-popover" class="popover" hidden>
+    <div class="popover-label">Border color</div>
+    <div class="popover-row">
+      <label class="ft-color-well solid" title="Border color">
+        <input type="color" id="ft-border-color" />
+        <span class="ft-color-square" id="ft-border-current"></span>
+      </label>
+      <button class="ghost-btn" id="ft-border-clear">No border</button>
+    </div>
+    <div class="swatch-row" id="border-swatches"></div>
+    <div class="popover-label">Width</div>
+    <div class="slider-row">
+      <input type="range" id="ft-border-width" min="0" max="12" step="1" />
+      <span class="slider-val" id="ft-border-width-val">0px</span>
+    </div>
+    <div class="popover-label">Corner radius</div>
+    <div class="slider-row">
+      <input type="range" id="ft-border-radius" min="0" max="64" step="1" />
+      <span class="slider-val" id="ft-border-radius-val">12px</span>
+    </div>
   </div>
 
   <!-- Help popover -->

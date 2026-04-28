@@ -709,6 +709,58 @@ kbd {
   pointer-events: none;
 }
 
+/* Border icon (toolbar swatch for node border) */
+.ft-border-icon {
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  border: 2px solid currentColor;
+  background: transparent;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+.ft-border-icon.empty {
+  border: 1.5px dashed var(--muted-2);
+}
+
+/* Slider row inside popovers */
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.slider-row input[type="range"] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: var(--line-stronger);
+  border-radius: 2px;
+}
+.slider-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  background: var(--surface);
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  cursor: pointer;
+}
+.slider-row input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px;
+  background: var(--surface);
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  cursor: pointer;
+}
+.slider-val {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  min-width: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Cursor hint when Ctrl held */
 .board.ctrl-held { cursor: crosshair; }
 .board.ctrl-held .node:not(.line-node) { cursor: crosshair; }
