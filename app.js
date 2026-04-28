@@ -231,9 +231,19 @@ function createNodeElement(node) {
     svg.setAttribute("class", "shape-vis");
     el.appendChild(svg);
   }
-  const handle = document.createElement("div");
-  handle.className = "handle"; handle.dataset.role = "resize";
-  el.appendChild(handle);
+  // Resize handles. Image and shape get all 4 corners (full scaling).
+  // Text gets a single SE handle since its height auto-fits content.
+  const corners = (node.type === "image" || node.type === "shape")
+    ? ["nw", "ne", "sw", "se"]
+    : ["se"];
+  for (const corner of corners) {
+    const h = document.createElement("div");
+    h.className = `handle ${corner}`;
+    h.dataset.role = "resize";
+    h.dataset.corner = corner;
+    if (node.type === "image") h.title = "Drag to scale (hold Shift to free-resize)";
+    el.appendChild(h);
+  }
   el.addEventListener("mousedown", onNodeMouseDown);
   el.addEventListener("dblclick", onNodeDoubleClick);
   return el;
@@ -758,6 +768,7 @@ function onNodeMouseDown(e) {
 
   e.stopPropagation();
   const isHandle = e.target instanceof HTMLElement && e.target.dataset.role === "resize";
+  const corner = isHandle ? (e.target.dataset.corner || "se") : null;
   const endpoint = e.target instanceof HTMLElement && e.target.dataset.role === "endpoint" ? e.target.dataset.end : null;
 
   // Endpoint drag for line nodes
@@ -786,7 +797,7 @@ function onNodeMouseDown(e) {
         if (n.type === "line") return { id: n.id, line: true, x1: n.x1, y1: n.y1, x2: n.x2, y2: n.y2 };
         return { id: n.id, x: n.x, y: n.y, w: n.w, h: n.h || 0 };
       });
-  drag = { primaryId: id, mode: isHandle ? "resize" : "move", startX: e.clientX, startY: e.clientY, origs };
+  drag = { primaryId: id, mode: isHandle ? "resize" : "move", corner, startX: e.clientX, startY: e.clientY, origs };
   window.addEventListener("mousemove", onWindowMouseMove);
   window.addEventListener("mouseup", onWindowMouseUp);
 }
@@ -817,14 +828,40 @@ function onWindowMouseMove(e) {
     const o = drag.origs[0];
     const n = state.nodes.find((x) => x.id === o.id);
     if (!n) return;
-    if (n.type === "text") n.w = Math.max(60, Math.round(o.w + dx));
-    else { n.w = Math.max(40, Math.round(o.w + dx)); n.h = Math.max(28, Math.round(o.h + dy)); }
-    const el = canvas.querySelector(`.node[data-id="${n.id}"]`);
-    if (el) {
-      if (n.type === "text") el.style.maxWidth = n.w + "px";
-      else { el.style.width = n.w + "px"; el.style.height = n.h + "px"; }
+    if (n.type === "text") {
+      n.w = Math.max(60, Math.round(o.w + dx));
+      const el = canvas.querySelector(`.node[data-id="${n.id}"]`);
+      if (el) el.style.maxWidth = n.w + "px";
+      refreshLinesConnectedTo([n.id]);
+    } else {
+      // Corner-aware resize for image and shape. Images lock aspect ratio
+      // by default — hold Shift to distort.
+      const corner = drag.corner || "se";
+      let nx = o.x, ny = o.y, nw = o.w, nh = o.h;
+      if (corner === "se") { nw = o.w + dx; nh = o.h + dy; }
+      else if (corner === "sw") { nx = o.x + dx; nw = o.w - dx; nh = o.h + dy; }
+      else if (corner === "ne") { ny = o.y + dy; nw = o.w + dx; nh = o.h - dy; }
+      else if (corner === "nw") { nx = o.x + dx; ny = o.y + dy; nw = o.w - dx; nh = o.h - dy; }
+      if (n.type === "image" && !e.shiftKey && o.w > 0 && o.h > 0) {
+        const aspect = o.w / o.h;
+        if (Math.abs(nw - o.w) * o.h >= Math.abs(nh - o.h) * o.w) nh = nw / aspect;
+        else nw = nh * aspect;
+        // Re-anchor: keep the corner OPPOSITE the dragged one fixed.
+        if (corner === "sw") nx = o.x + o.w - nw;
+        else if (corner === "ne") ny = o.y + o.h - nh;
+        else if (corner === "nw") { nx = o.x + o.w - nw; ny = o.y + o.h - nh; }
+      }
+      const minW = 40, minH = 28;
+      nw = Math.max(minW, Math.round(nw));
+      nh = Math.max(minH, Math.round(nh));
+      n.x = Math.round(nx); n.y = Math.round(ny); n.w = nw; n.h = nh;
+      const el = canvas.querySelector(`.node[data-id="${n.id}"]`);
+      if (el) {
+        el.style.left = n.x + "px"; el.style.top = n.y + "px";
+        el.style.width = n.w + "px"; el.style.height = n.h + "px";
+      }
+      refreshLinesConnectedTo([n.id]);
     }
-    refreshLinesConnectedTo([n.id]);
   } else if (drag.mode === "endpoint") {
     const n = state.nodes.find((x) => x.id === drag.id);
     if (!n) return;
@@ -2064,518 +2101,274 @@ function resolveColor(input) {
 }
 
 const AI_PROMPT_TEMPLATE = `You are a visual diagram designer for "My Playbook", a whiteboard app.
-I'll describe an idea — turn it into a DENSE, DEEP, MULTI-LEVEL board with nodes, sections, and arrows.
+Turn the user's idea into a DENSE, MULTI-LEVEL board of nodes, sections, and arrows.
 
-Reply with ONE JSON object inside a single \`\`\`json … \`\`\` fence. NO commentary.
+═══════════════════════════════════════════
+OUTPUT — PLAN first (plain text), then ONE \`\`\`json fence. Nothing else.
+═══════════════════════════════════════════
+Always start with this PLAN block (5 lines exactly, plain text, no markdown headers):
 
-══════════════════════════════════════════════════════════
-SCHEMA — these field names are FIXED. Do not invent others.
-══════════════════════════════════════════════════════════
+PLAN
+Sections (2–4): <comma-separated section titles>
+Total nodes (25–40): <number>
+Levels deep (≥3): <number>   // root → branch → sub-point [→ paper]
+Papers planned (≥6): <comma-separated node ids that will get papers>
+Sticky colors (≤3): <pastel names, one per cluster>
 
+Then ONE JSON object inside a single \`\`\`json … \`\`\` fence. NO commentary after.
+
+If your plan violates any limit, FIX the plan before writing JSON. The plan is a contract.
+
+═══════════════════════════════════════════
+SCHEMA — fields are FIXED; never invent others; never include x / y.
+═══════════════════════════════════════════
 {
-  "groups": [
-    {
-      "title": "Section heading (shown above the section)",
-      "layout":  "mindmap | tree | flow | bilateral | radial | grid",
-      "density": "tight | normal | wide",   // optional, default "normal"
-
-      "nodes": [
-        {
-          "id":     "kebab-or-snake-case-id",   // unique, GLOBAL across all groups
-          "label":  "Visible text — ≤ 4 words (or full paragraphs for paper / image caption)",
-          "kind":   "heading | body | sticky | paper | emoji | image",
-          "color":  "pastel name for sticky fills, OR stroke name for line color, OR #hex",
-          "border": "yes | no | #hex",
-          "align":  "left | center | right",     // optional
-          "fontSize": 18,                        // optional override
-          "bold":   false,                       // optional
-          "italic": false,                       // optional
-          "branchLayout": "right-fan | left-fan | bilateral | top-down | bottom-up | horizontal-row | grid", // optional — overrides how THIS node's children are positioned
-
-          // image-only fields:
-          "src":    "https://upload.wikimedia.org/...jpg",   // image URL (required for kind=image)
-          "w":      320,                                     // optional width  (default 320)
-          "h":      200                                      // optional height (default 200)
-        }
-      ],
-
-      "links": [
-        {
-          "from":  "node-id",
-          "to":    "node-id",
-          "label": "≤ 2 words on the arrow (optional, use sparingly)",
-          "color": "stroke-tier name or #hex",   // line color
-          "width": 2,                            // line thickness
-          "arrow": true                          // false for a plain line
-        }
-      ]
-    }
-  ]
+  "groups": [{
+    "title": "Section heading",
+    "layout": "mindmap | tree | flow | bilateral | radial | grid",
+    "density": "tight | normal | wide",                                    // optional
+    "nodes": [{
+      "id": "kebab-id",                                                    // unique GLOBAL across all groups
+      "label": "≤4 words (paragraphs only inside paper kind)",
+      "kind": "heading | body | sticky | paper | emoji | image",
+      "color": "pastel-name",                                              // sticky ONLY (fill tier)
+      "border": "yes | no | #hex",                                         // optional
+      "align": "left | center | right",                                    // optional
+      "fontSize": 18, "bold": false, "italic": false,                      // optional
+      "branchLayout": "right-fan | left-fan | bilateral | top-down | bottom-up | horizontal-row | grid", // optional, per-node
+      "src": "https://...", "w": 320, "h": 200                             // image kind only
+    }],
+    "links": [{
+      "from": "id", "to": "id",
+      "label": "≤2 words",                                                 // optional
+      "color": "stroke-name",                                              // stroke tier ONLY, default gray
+      "width": 2, "arrow": true
+    }]
+  }],
+  "remove": ["id1", "id2"]                                                 // edit-mode only — see EDIT MODE
 }
 
-NEVER include x / y. The board lays things out automatically.
+═══════════════════════════════════════════
+DEPTH — papers ARE the depth. Flat lists fail.
+═══════════════════════════════════════════
+Required shape (3+ levels):
+  L1 heading (section root)
+  L2 main branches: 2–4 stickies, one cluster color each
+  L3 sub-points: 2–4 body nodes per branch
+  L4 paper popups attached to sub-points where they add value
 
-══════════════════════════════════════════════════════════
-EDIT MODE — when the user pastes an existing board above
-══════════════════════════════════════════════════════════
-If a JSON board (same schema) appears ABOVE this prompt, you are EDITING that
-board, not rebuilding it. Apply the user's request as a small DELTA:
+FAIL MODE: heading → 5 stickies → done. That's a flat fan-out, not a mindmap.
 
-• Reuse existing node IDs verbatim. Don't renumber. Don't rename.
-• OMIT every node and link the user didn't ask to change. Do NOT re-emit
-  unchanged nodes — silence means "leave it alone".
-• To CHANGE a node: emit it with its existing id and the changed fields.
-• To ADD a node: emit it with a NEW unique id (prefix "new-" or any
-  kebab-case the existing board hasn't used).
-• To REMOVE nodes: add a top-level "remove": ["id1", "id2"] array.
-  Any links touching a removed node disappear automatically — don't list
-  them too.
-• Links: same rule. Re-emit only the from/to pairs you are adding or
-  restyling. To delete a link, prefer removing one of its endpoints.
-• Cross-section links to existing nodes work naturally — IDs are global.
-• The output is a delta, not a snapshot. Don't include unchanged sections.
+PAPER POPUPS hold the real content. They render as compact "📄 Title" tiles
+(zero canvas cost) and open in a popup on double-click. USE LIBERALLY:
 
-Tiny example. Existing board has nodes "a", "b", "c" linked a→b→c. The user
-says "split b into b1 and b2, and remove a." Reply:
+• Every sticky and every important body attaches ≥1 paper.
+• Complex concepts get 2–4 papers (definition / example / mechanism / fix).
+• Each paper: 3–6 paragraphs of REAL content with concrete numbers, names, examples.
+• Paper "label" format: "Title\\n\\n<paragraph>\\n\\n<paragraph>..." (use \\n\\n between paragraphs).
+• ≥6 papers per board total. Fewer = under-explained, rewrite.
+
+Anything longer than 4 words goes in a paper, NEVER in a body label.
+
+═══════════════════════════════════════════
+DENSITY
+═══════════════════════════════════════════
+2–4 sections. 8–14 nodes per section. 25–40 nodes total. ≤12 links per section.
+No "Introduction" / "Summary" / "Overview" sections. Cut filler. Merge synonyms.
+Optional density field: "tight" | "normal" (default) | "wide".
+
+═══════════════════════════════════════════
+COLOR — two strict tiers, never mix
+═══════════════════════════════════════════
+FILL tier (sticky backgrounds ONLY — pastels):
+  yellow #fdf3c7 · pink #fde2dd · blue #dde8f3 · green #dde8de
+  lavender #e4dff0 · peach #fde4d0 · mint #dceee2 · cream #f6efd9
+
+STROKE tier (link colors ONLY — deeper):
+  red #c25a5a · orange #d18a4a · amber #bfa050 · forest #508a6c
+  sky #3d6c8a · violet #6b5aa3 · magenta #a35a8c · gray #6b6e68
+
+Rules:
+• heading / body / paper / emoji / image: NO color field (white / cream).
+• sticky: ONLY a fill-tier color. ≤3 distinct colors per board. Same color = same cluster.
+• Link color: ONLY stroke-tier. Default gray.
+• Crossing tiers is forbidden. No raw dark hex for fills.
+
+═══════════════════════════════════════════
+LAYOUT — default mindmap; override only when shape is intrinsic
+═══════════════════════════════════════════
+DEFAULT: group layout = "mindmap", no branchLayout overrides. Right ~90% of the time.
+
+GROUP layouts:
+• mindmap   (DEFAULT) — recursive expansion. Brainstorms, "around X", concept maps.
+• tree                — strict hierarchy with real ranks. Org charts, taxonomies.
+• flow                — RARE. True ordered sequences (timelines, pipelines).
+• bilateral           — root with 5+ branches splitting L/R.
+• radial              — hub-and-spoke ecosystem, ≤8 spokes, no recursion.
+• grid                — flat parallel options, no hierarchy.
+
+PER-NODE branchLayout decision tree (override only when needed):
+  Children in TIME ORDER (steps, stages)?     → horizontal-row
+  Children are PARALLEL OPTIONS (no rank)?    → grid
+  Children form a vertical RANK hierarchy?    → top-down
+  Root with 5+ balanced main branches?        → bilateral on root
+  Otherwise — sub-points of an idea?          → leave blank (inherits right-fan)
+
+Inheritance: node's branchLayout > parent's effective > group default.
+
+═══════════════════════════════════════════
+NODE KINDS
+═══════════════════════════════════════════
+• heading — section root. White, bold. 1–3 words. Exactly ONE per section.
+• body    — plain card, white. Default leaf. 1–4 words.
+• sticky  — colored cluster. Fill-tier color identifies the theme.
+• paper   — long-form popup tile. Holds the real explanation. Use liberally.
+• emoji   — single glyph (💡 🎯 🚀 ⚠️ ✅ 🔥 📌 🧠). 1 opener per section + sparing markers.
+• image   — visual reference. ONLY emit if you are CERTAIN the URL works.
+            Prefer https://upload.wikimedia.org/... or https://images.unsplash.com/...
+            If unsure, EMIT ZERO. Broken URLs are auto-removed and waste a slot.
+            Schema: { "id":"...", "label":"caption", "kind":"image", "src":"...", "w":320, "h":200 }
+
+═══════════════════════════════════════════
+ARROWS — keep them clean
+═══════════════════════════════════════════
+• ≤3 outgoing per node, ≤4 incoming.
+• No reciprocal links (don't emit both A→B and B→A).
+• Cross-section links only for high-level concept bridges, not detail links.
+• Unrelated nodes stay unlinked. Silence beats spaghetti.
+
+═══════════════════════════════════════════
+EDIT MODE — when a board JSON appears ABOVE this prompt
+═══════════════════════════════════════════
+You are EDITING that board, not rebuilding. Output a DELTA only:
+• Reuse existing IDs verbatim. Don't renumber. Don't rename.
+• OMIT unchanged nodes and links. Silence = "leave it alone".
+• CHANGE: re-emit the node with its existing id and the new fields.
+• ADD: emit a new id (prefix "new-" or any unused kebab).
+• REMOVE: top-level "remove": ["id1", "id2"]. Links touching removed nodes vanish automatically.
+• SKIP THE PLAN BLOCK in edit mode — output JSON only.
+
+Example: existing board has a→b→c. User says "split b, remove a":
 
 \`\`\`json
 {
   "remove": ["a"],
-  "groups": [
-    {
-      "title": "Edits",
-      "layout": "mindmap",
-      "nodes": [
-        { "id": "new-b1", "label": "Half one",  "kind": "body" },
-        { "id": "new-b2", "label": "Half two",  "kind": "body" },
-        { "id": "b",      "label": "Was b",     "kind": "sticky", "color": "blue" }
-      ],
-      "links": [
-        { "from": "b", "to": "new-b1" },
-        { "from": "b", "to": "new-b2" },
-        { "from": "new-b1", "to": "c" }
-      ]
-    }
-  ]
+  "groups": [{
+    "title": "Edits", "layout": "mindmap",
+    "nodes": [
+      { "id":"new-b1", "label":"Half one", "kind":"body" },
+      { "id":"new-b2", "label":"Half two", "kind":"body" },
+      { "id":"b", "label":"Was b", "kind":"sticky", "color":"blue" }
+    ],
+    "links": [
+      { "from":"b", "to":"new-b1" },
+      { "from":"b", "to":"new-b2" },
+      { "from":"new-b1", "to":"c" }
+    ]
+  }]
 }
 \`\`\`
 
-══════════════════════════════════════════════════════════
-DENSITY — pack it dense, but every node must earn its place
-══════════════════════════════════════════════════════════
-Aim for a dense, information-rich map. Targets:
-• ≤ 5 sections (groups) total — width is fine, depth is the goal.
-• 8–15 nodes per section, structured into MULTIPLE LEVELS (not a flat fan-out).
-• 25–50 nodes total across the whole board. More is fine if every node earns its place.
-• ≤ 12 links total per section.
-Cut filler. No decorative nodes. No "Introduction" / "Conclusion" / "Summary" sections.
-Merge synonyms. But do NOT collapse a real sub-point just to stay small —
-expanding a real concept into its parts is the whole point.
+═══════════════════════════════════════════
+EXAMPLE A — deep mindmap with paper popups (the dominant pattern)
+═══════════════════════════════════════════
+PLAN
+Sections (2–4): Around: Cold-start
+Total nodes (25–40): 17
+Levels deep (≥3): 4
+Papers planned (≥6): cs-cache-p, cs-jit-p, cs-pool-p, cs-prewarm-p, cs-replica-p, cs-detect-p
+Sticky colors (≤3): peach, mint, blue
 
-Per-section density hint (optional "density" field):
-• "tight"  — pack nodes close, for dense reference / FAQ / glossary sections.
-• "normal" — default; balanced spacing.
-• "wide"   — only when readability genuinely demands it (big paper popups + images).
-
-══════════════════════════════════════════════════════════
-DEPTH — go DEEP, not wide. Flat lists are forbidden.
-══════════════════════════════════════════════════════════
-The #1 failure mode is a 1-level fan-out: heading → 5 stickies → done. Don't do that.
-
-• For mindmap and tree layouts: AT LEAST 3 LEVELS of depth.
-    Level 1: heading (the section root).
-    Level 2: main branches (2–4 main branches under the root).
-    Level 3: sub-points under each main branch.
-    Level 4+: keep going where the topic warrants — leaves can be paper popups.
-• Every main branch should have 2–4 sub-branches. Every sub-branch should have its
-  own children where the topic warrants it.
-• THINK DEEPLY before stopping. For every node you write, ask: "what are the parts
-  of this? what are its causes, examples, mechanisms, consequences?" Decompose until
-  you hit something that's truly atomic.
-• Leaves should NOT be terminal one-word stubs. Either decompose them further OR
-  attach a paper popup that explains them. Paper popups ARE the depth.
-• A "section" with one heading and 5 stickies hanging off it directly is a FAILURE.
-  Rebuild it with intermediate stickies that group those 5 into 2–3 sub-clusters,
-  each with its own children.
-
-══════════════════════════════════════════════════════════
-COLOR DISCIPLINE — pastel fills, deeper strokes, never mix
-══════════════════════════════════════════════════════════
-Two strict tiers. Do NOT cross them.
-
-FILL tier (sticky note backgrounds ONLY — soft pastels):
-  yellow    #fdf3c7
-  pink      #fde2dd
-  blue      #dde8f3
-  green     #dde8de
-  lavender  #e4dff0   (alias: lilac)
-  peach     #fde4d0
-  mint      #dceee2
-  cream     #f6efd9
-
-STROKE / ACCENT tier (link "color" ONLY — deeper, never used as a node fill):
-  red      #c25a5a
-  orange   #d18a4a
-  amber    #bfa050
-  forest   #508a6c
-  sky      #3d6c8a
-  violet   #6b5aa3   (alias: purple)
-  magenta  #a35a8c
-  gray     #6b6e68
-
-Rules:
-1. heading nodes → no color field (stay white). body nodes → no color field (stay white).
-   paper nodes → no color field (stay paper-cream). emoji nodes → no color field.
-   image nodes → no color field (the picture IS the visual).
-2. sticky nodes are the ONLY nodes that take a fill color, and ONLY from the FILL tier.
-3. Link "color" comes ONLY from the STROKE tier. Default to gray for plain links.
-4. NEVER put a stroke-tier color on a sticky. NEVER put a pastel on a link.
-5. Use ≤ 3 distinct sticky colors per board. Same color = same theme — never reuse a
-   color for unrelated ideas. One sticky color = one cluster id.
-6. Black/dark/saturated raw hex values are forbidden for fills. Stick to the names above.
-
-══════════════════════════════════════════════════════════
-GROUPING — same idea, same section, same color
-══════════════════════════════════════════════════════════
-• Cluster related ideas in the SAME section (group). If two nodes share a theme they
-  must live in the same group with the same sticky color.
-• Each section has ONE clear topic. Name it explicitly via "title".
-• Cross-section links are allowed ONLY for high-level concept bridges (e.g. an
-  "overview" group pointing into a "details" group). Do not use them for low-level
-  detail links — those belong inside one section.
-
-══════════════════════════════════════════════════════════
-ANTI-OVERLAP — keep arrows from crossing
-══════════════════════════════════════════════════════════
-• Prefer linear chains (A → B → C) or clean mindmap branches over webs.
-• ≤ 3 outgoing links per node. ≤ 4 incoming links per node.
-• No reciprocal links (if A → B exists, do NOT also emit B → A).
-• No long cross-board edges that would cut through other nodes — keep linked nodes in
-  the same section whenever possible.
-• Do not connect every node to every other node. If a node has no clear relation,
-  let it sit unlinked inside its section — silence is better than spaghetti.
-
-══════════════════════════════════════════════════════════
-LAYOUT SELECTION — pick the GROUP layout AND (optionally) per-node branchLayout
-══════════════════════════════════════════════════════════
-You now pick TWO things:
-  1. The GROUP "layout" — overall section shape (set on the group).
-  2. Optionally, "branchLayout" on individual NODES — overrides how THAT node's
-     children are arranged. Each node decides for itself; otherwise it inherits
-     from its parent, ultimately falling back to the group's layout.
-
-DEFAULT: when in doubt, group layout = mindmap, no branchLayout overrides.
-
-GROUP-LEVEL "layout" values (overall section shape):
-• mindmap   — DEFAULT. Deep recursive exploration. Root defaults to "right-fan"
-              unless overridden. Children inherit and recurse — every node may pick
-              its own branchLayout. Use for brainstorms, idea expansion, "around X".
-• tree      — strict hierarchy with real ranks. Root defaults to "top-down".
-              Sub-branches recurse and may pick their own branchLayout.
-• flow      — RARE. True ordered sequences only. Root defaults to "horizontal-row".
-              If the section is "things connected to X", use mindmap NOT flow.
-• bilateral — Balanced root with 5+ main branches splitting LEFT and RIGHT.
-              Root defaults to "bilateral". Each main branch recurses.
-• radial    — SPECIAL. Hub-and-spoke ECOSYSTEM with equal-tier siblings around a
-              hub. NO recursion — siblings don't branch. Use for ≤ 8 spokes only.
-              Avoid past 10 nodes; prefer right-fan or bilateral.
-• grid      — SPECIAL. Flat parallel options/categories. No hierarchy.
-
-Each section chooses ONE group layout. If a section feels like two shapes, either
-split it OR use branchLayout on specific sub-branches to give them their own shape.
-
-══════════════════════════════════════════════════════════
-BRANCH LAYOUT — pick the right shape per node
-══════════════════════════════════════════════════════════
-"branchLayout" is OPTIONAL on every node. Set it where a node's children clearly
-need a different shape than the default; leave it off where inheritance does the
-right thing.
-
-The 7 branch layouts:
-
-• right-fan      — children stack VERTICALLY to the RIGHT of this node.
-                   Default for mindmap. General "X has these sub-points".
-• left-fan       — children stack VERTICALLY to the LEFT of this node.
-                   Mirror of right-fan. Sparingly — balancing a bilateral root.
-• bilateral      — half the children go RIGHT, half go LEFT.
-                   Use on the ROOT of a balanced mindmap with 5+ main branches.
-• top-down       — children in a ROW BELOW the parent.
-                   Tree-style. When ranks are real and children are peers.
-• bottom-up      — children in a ROW ABOVE the parent.
-                   Rare — "leads to" or building UP toward a goal.
-• horizontal-row — children in a single ROW to the RIGHT, centered on parent.
-                   Sequences, timelines, before→after, pipelines.
-• grid           — children in a roughly-square GRID below parent.
-                   Parallel options, comparison cards, gallery.
-
-Decision tree — for any node with children, ask in order:
-  1. "Are children peers in a clear ORDER (steps, stages, time)?"
-        → horizontal-row (default for sequences) or top-down (vertical hierarchy)
-  2. "Are children parallel options without ranking?"  → grid
-  3. "Are children sub-points of an idea, asymmetric depth?"
-        → right-fan (default) or left-fan (rare, mirror only)
-  4. "Is this the ROOT of a balanced topic with 5+ main branches?" → bilateral
-If "none of the above, just inherit", LEAVE branchLayout off.
-
-Inheritance: node's own branchLayout > parent's effective > group layout's default.
-
-══════════════════════════════════════════════════════════
-LABELS & HIERARCHY
-══════════════════════════════════════════════════════════
-• Node labels ≤ 4 words. Arrow labels ≤ 2 words (omit when obvious).
-• Paper notes are the ONLY place for paragraphs (use \\n\\n for line breaks).
-• Every section has exactly ONE heading node (the root of that section).
-• body nodes for plain ideas. sticky for color-grouped clusters. paper for explanations.
-  image for visual references. emoji as section opener or as a semantic marker.
-
-══════════════════════════════════════════════════════════
-NODE KINDS
-══════════════════════════════════════════════════════════
-• heading — section root, big bold text, white. 1–3 words.
-• body    — plain card, white. The default. 1–4 words.
-• sticky  — colored grouped idea. Fill tier color = cluster id.
-• paper   — long-form explanation. Renders on the canvas as a compact "📄 Title" tile;
-            DOUBLE-CLICK opens a popup with the full content. Because paper notes no
-            longer cost canvas space, USE THEM LIBERALLY. Whenever a node needs more
-            than 4 words to be clear, do NOT cram it into a body label — instead emit
-            a paper node linked to that node. The paper's "label" field holds the
-            FULL content (use \\n\\n for paragraphs, 3–5 sentences typical).
-            Best pattern: a body / sticky states the idea ("Cold start problem"); a
-            paper node linked to it explains it.
-• emoji   — single glyph (✨ 🎯 🚀 ⚠️ ✅ 💡 ★ 📌 🔥 🧠).
-            Use 1 per section as the opener (kept). ALSO fine as a semantic marker
-            attached to a specific node via a short link: ✅ for done, ⚠️ for risk,
-            🎯 for goal, 🔥 for priority. Stay modest — don't decorate everything.
-• image   — visual reference. Schema:
-            { "id": "...", "label": "caption", "kind": "image",
-              "src": "https://example.com/foo.jpg", "w": 320, "h": 200 }
-            CRITICAL: only emit an image if you are CERTAIN the URL exists and
-            is publicly fetchable. Broken URLs are auto-removed from the board,
-            so a fake or guessed URL just wastes a slot and leaves a gap.
-            Prefer URLs you have HIGH confidence in:
-              • https://upload.wikimedia.org/... (Wikimedia Commons — verify file)
-              • https://images.unsplash.com/... (Unsplash photo URLs)
-              • Well-known, stable CDNs you've seen before
-            DO NOT INVENT plausible-looking Wikimedia paths — they will 404.
-            DO NOT use placeholder URLs like example.com or via.placeholder.
-            If you cannot recall a real, working URL, SKIP the image entirely
-            rather than guess. 0 images is better than broken images.
-            When you DO add images, aim for 1–3 per board on main branches
-            where the topic has an obvious visual association.
-
-══════════════════════════════════════════════════════════
-PAPER-AS-POPUP PATTERN — papers ARE the depth, write them in DETAIL
-══════════════════════════════════════════════════════════
-Paper notes render as a compact "📄 Title" tile on the canvas. Double-click opens
-a popup with the full content. Because they don't cost canvas space, USE THEM
-LIBERALLY and write them in DEPTH.
-
-WRITING THE PAPER CONTENT (this is where the real value lives):
-• Start with a 1-line title (becomes the popup heading) followed by \\n\\n.
-• Then write 3–6 PARAGRAPHS of real explanation. Each paragraph 2–4 sentences.
-• Paragraphs separated by \\n\\n. Use this freely.
-• Cover: what the concept IS, WHY it matters, HOW it works, EXAMPLES,
-  EDGE CASES or COMMON MISTAKES, related concepts.
-• Treat the paper as a Wikipedia-style mini-article — not a tweet.
-• You can include lists, definitions, examples, contrasts. Be concrete.
-• Mention specific tools, numbers, frameworks, names. Concrete > abstract.
-
-WHEN TO ATTACH A PAPER:
-• EVERY major sub-branch (sticky / heading / important body) should have at
-  least one paper attached.
-• When a topic has multiple facets, attach MULTIPLE papers to the same node:
-  one for "definition", another for "example", another for "common mistakes",
-  another for "tools". Don't cram everything into one paper if the facets are
-  distinct — split into multiple connected papers.
-• Even small body leaves get a 2–4 sentence paper if their meaning isn't obvious.
-
-QUANTITY TARGETS:
-• AT LEAST 6–10 paper-popup nodes per board (more for technical topics).
-• A complex concept can have 2–4 papers attached to it (definition / example /
-  caveat / tool). The popup tiles all stack as separate "📄" tiles linked off
-  the same node — that's the right pattern, not a single mega-paper.
-• A board with only 1 paper is severely under-explained — flag this as a
-  failure mode and rewrite.
-
-Example — ONE node, MULTIPLE attached papers:
-  { "id": "cold-start",  "label": "Cold start problem", "kind": "sticky", "color": "peach" }
-  { "id": "cs-def",      "label": "What it is\\n\\nA cold start happens when a service has just been deployed or scaled out and its caches, JIT optimizations, and connection pools are not yet warm. The first wave of requests sees significantly higher latency than steady state — typically 5–20× slower for the first 30–120 seconds.\\n\\nMost severe in JVM/Node/serverless environments where the runtime needs to profile hot paths and warm up internal data structures.", "kind": "paper" }
-  { "id": "cs-ex",       "label": "Real-world example\\n\\nAWS Lambda cold starts can add 1–3 seconds to a request when a new container spins up after idle. Java Lambdas are worst (2–10s); Go and Node are typically <500ms.\\n\\nFor always-on services (Kubernetes pods after deploy), the cold-start window is usually 30–60s before P99 latency drops back to baseline.", "kind": "paper" }
-  { "id": "cs-fix",      "label": "Mitigations\\n\\n1. Pre-warm via synthetic traffic on deploy. Hit /health and a few representative endpoints before shifting real traffic.\\n2. Keep at least one always-hot replica behind the load balancer.\\n3. Lazy-load non-critical modules so the hot path boots fast.\\n4. For serverless, use provisioned concurrency.\\n5. Use SnapStart or similar runtime checkpointing where available.", "kind": "paper" }
-
-  links:
-    { "from": "cold-start", "to": "cs-def", "label": "what" }
-    { "from": "cold-start", "to": "cs-ex",  "label": "example" }
-    { "from": "cold-start", "to": "cs-fix", "label": "fix" }
-
-══════════════════════════════════════════════════════════
-IMAGE EXAMPLE
-══════════════════════════════════════════════════════════
-{
-  "id":   "wiki-octocat",
-  "label":"GitHub Octocat (mascot)",
-  "kind": "image",
-  "src":  "https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg",
-  "w":    280,
-  "h":    280
-}
-
-══════════════════════════════════════════════════════════
-MINDMAP EXAMPLE — root + main branches + sub-branches + leaves
-══════════════════════════════════════════════════════════
-The shape to imitate (3+ levels, sub-clusters, paper popups at the leaves):
-
-  Cold start (heading)
-  ├── Causes (sticky)
-  │   ├── Empty caches (body) → paper "Caches are populated lazily..."
-  │   ├── JIT not warm (body) → paper "JIT compilers profile hot paths..."
-  │   └── DB connection pool empty (body)
-  ├── Mitigations (sticky)
-  │   ├── Pre-warm traffic (body) → paper "Synthetic GET to /health on deploy..."
-  │   ├── Always-hot replica (body)
-  │   └── Lazy module load (body)
-  └── Detection (sticky)
-      ├── P99 spike on first request
-      └── Health-check fails first 30s
-
-══════════════════════════════════════════════════════════
-BAD vs GOOD — collapse the bloated reply
-══════════════════════════════════════════════════════════
-BAD (sprawling, dark fills, every section a long flow, scattered):
-  9 sections, "Introduction" + "Summary" sections, sticky colors
-  {red #b54343, magenta #8a4378, black #0e0f0c} as fills, flow layouts
-  everywhere stretching the board sideways, long body labels with 3-sentence
-  explanations crammed in, arrows running across the board between unrelated
-  sections.
-
-ALSO BAD (the shallow failure mode this prompt fixes):
-  Mindmap with 1 heading + 5 stickies hanging directly off it. No sub-branches.
-  No paper popups. Every leaf is a 2-word stub. Total node count under 15.
-  This is a flat list pretending to be a mindmap. Rebuild it with depth.
-
-ALSO BAD (uniform shape — failing to use branchLayout):
-  Every node uses the same layout because the AI didn't think about per-branch
-  shape. A timeline crammed into right-fan so steps stack vertically and read
-  like a list. A grid of parallel options forced into top-down so they look
-  like a hierarchy that doesn't exist. One shape applied to a topic that has
-  multiple intrinsic shapes. Use branchLayout per-node to fix this.
-
-GOOD (mindmap spine, 3 levels deep, paper popups at leaves):
-  3 sections. The main mindmap section is 3 LEVELS DEEP: a root, 2–4 main
-  branches under it, and each branch has 2–4 sub-points of its own. Leaves
-  attach paper popups with 2–4 sentences of real detail. Long explanations
-  ALWAYS live in paper popups, never in body labels. One sticky color per
-  cluster from the FILL tier (e.g. peach for "Causes", mint for "Mitigations",
-  blue for "Detection"). Gray strokes by default; one forest-stroke link
-  bridges sections as a high-level concept hand-off. flow used in at most
-  ONE section, only because there's a real timeline. No "Summary" section.
-
-══════════════════════════════════════════════════════════
-EXAMPLE — minimum viable reply (deep mindmap + paper popups + flow timeline)
-══════════════════════════════════════════════════════════
 \`\`\`json
 {
-  "groups": [
-    {
-      "title": "Around: Cold-start problem",
-      "layout": "mindmap",
-      "density": "normal",
-      "nodes": [
-        { "id": "cs-emoji",     "label": "💡",                      "kind": "emoji" },
-        { "id": "cs-h",         "label": "Cold start",              "kind": "heading", "branchLayout": "bilateral" },
+  "groups": [{
+    "title": "Around: Cold-start",
+    "layout": "mindmap",
+    "nodes": [
+      { "id":"cs-emoji",   "label":"💡",            "kind":"emoji" },
+      { "id":"cs-h",       "label":"Cold start",    "kind":"heading", "branchLayout":"bilateral" },
 
-        { "id": "cs-causes",    "label": "Causes",                  "kind": "sticky", "color": "peach", "branchLayout": "right-fan" },
-        { "id": "cs-cause-cache","label": "Empty caches",           "kind": "body" },
-        { "id": "cs-cache-p",   "label": "Caches are populated lazily on first access, so right after boot every request is a miss. Latency stays elevated until the working set is hot — typically the first 30–120 seconds of traffic.", "kind": "paper" },
-        { "id": "cs-cause-jit", "label": "JIT not warm",            "kind": "body" },
-        { "id": "cs-jit-p",     "label": "JIT compilers (V8, HotSpot, .NET) profile hot paths before optimizing them. The first thousand calls run in interpreter mode and are 5–20x slower than steady state.", "kind": "paper" },
-        { "id": "cs-cause-pool","label": "DB pool empty",           "kind": "body" },
+      { "id":"cs-causes",  "label":"Causes",        "kind":"sticky", "color":"peach", "branchLayout":"right-fan" },
+      { "id":"cs-cache",   "label":"Empty caches",  "kind":"body" },
+      { "id":"cs-cache-p", "label":"Empty caches\\n\\nCaches populate lazily on first access, so right after boot every request is a miss. Latency stays elevated until the working set is hot — typically 30–120s of traffic.\\n\\nWorst on services with large warm sets (search, recommendations) where every cold request also blocks behind I/O instead of returning from memory.", "kind":"paper" },
+      { "id":"cs-jit",     "label":"JIT not warm",  "kind":"body" },
+      { "id":"cs-jit-p",   "label":"JIT not warm\\n\\nJIT compilers (V8, HotSpot, .NET) profile hot paths before optimizing them. The first ~1000 calls of a hot path run in interpreter mode, 5–20× slower than steady state.\\n\\nMost acute in the JVM and .NET; Go's AOT compilation sidesteps it. Node falls between — Turbofan kicks in within seconds for hot loops.", "kind":"paper" },
+      { "id":"cs-pool",    "label":"DB pool empty", "kind":"body" },
+      { "id":"cs-pool-p",  "label":"DB pool empty\\n\\nConnection pools start at zero after deploy and create connections on demand. The first N requests pay TCP handshake + TLS + auth latency on top of normal query time.\\n\\nFix: set min-pool-size to a non-zero warm value, and pre-open connections in your startup probe before serving traffic.", "kind":"paper" },
 
-        { "id": "cs-fixes",     "label": "Mitigations",             "kind": "sticky", "color": "mint", "branchLayout": "right-fan" },
-        { "id": "cs-fix-prewarm","label": "Pre-warm traffic",       "kind": "body" },
-        { "id": "cs-prewarm-p", "label": "On deploy, fire synthetic GET requests to /health and a handful of representative endpoints before shifting real traffic. This populates caches and triggers JIT compilation while users are still on the old replica.", "kind": "paper" },
-        { "id": "cs-fix-replica","label": "Always-hot replica",     "kind": "body" },
-        { "id": "cs-fix-lazy",  "label": "Lazy module load",        "kind": "body" },
+      { "id":"cs-fixes",     "label":"Mitigations",        "kind":"sticky", "color":"mint", "branchLayout":"right-fan" },
+      { "id":"cs-prewarm",   "label":"Pre-warm traffic",   "kind":"body" },
+      { "id":"cs-prewarm-p", "label":"Pre-warm traffic\\n\\nOn deploy, fire synthetic GET requests to /health and a handful of representative endpoints before shifting real traffic. This populates caches and triggers JIT compilation while users are still on the old replica.\\n\\nCommon patterns: a startup probe that loops over a fixture set, or a load-balancer warm-up phase that ramps traffic 1% → 5% → 25% before draining the old pool.", "kind":"paper" },
+      { "id":"cs-replica",   "label":"Always-hot replica", "kind":"body" },
+      { "id":"cs-replica-p", "label":"Always-hot replica\\n\\nKeep at least one replica warm at all times. New replicas join the load balancer only AFTER passing a warm-up phase that hits representative endpoints, not just /health.\\n\\nKubernetes: use a startupProbe with realistic traffic. Lambda: provisioned concurrency is the equivalent — pay for N warm instances 24/7.", "kind":"paper" },
 
-        { "id": "cs-detect",    "label": "Detection",               "kind": "sticky", "color": "blue", "branchLayout": "horizontal-row" },
-        { "id": "cs-detect-p99","label": "P99 spike first request", "kind": "body" },
-        { "id": "cs-detect-hc", "label": "Healthcheck fails 30s",   "kind": "body" }
-      ],
-      "links": [
-        { "from": "cs-emoji", "to": "cs-h" },
-
-        { "from": "cs-h",       "to": "cs-causes" },
-        { "from": "cs-causes",  "to": "cs-cause-cache" },
-        { "from": "cs-causes",  "to": "cs-cause-jit" },
-        { "from": "cs-causes",  "to": "cs-cause-pool" },
-        { "from": "cs-cause-cache", "to": "cs-cache-p", "label": "explain" },
-        { "from": "cs-cause-jit",   "to": "cs-jit-p",   "label": "explain" },
-
-        { "from": "cs-h",       "to": "cs-fixes" },
-        { "from": "cs-fixes",   "to": "cs-fix-prewarm" },
-        { "from": "cs-fixes",   "to": "cs-fix-replica" },
-        { "from": "cs-fixes",   "to": "cs-fix-lazy" },
-        { "from": "cs-fix-prewarm", "to": "cs-prewarm-p", "label": "explain" },
-
-        { "from": "cs-h",       "to": "cs-detect" },
-        { "from": "cs-detect",  "to": "cs-detect-p99" },
-        { "from": "cs-detect",  "to": "cs-detect-hc" }
-      ]
-    },
-    {
-      "title": "Deploy timeline",
-      "layout": "flow",
-      "density": "tight",
-      "nodes": [
-        { "id": "dp-h",     "label": "Deploy",         "kind": "heading" },
-        { "id": "dp-build", "label": "Build image",    "kind": "body" },
-        { "id": "dp-canary","label": "Canary 5%",      "kind": "body" },
-        { "id": "dp-full",  "label": "Full rollout",   "kind": "body" },
-        { "id": "dp-ok",    "label": "✅",             "kind": "emoji" }
-      ],
-      "links": [
-        { "from": "dp-h",     "to": "dp-build" },
-        { "from": "dp-build", "to": "dp-canary", "label": "5 min" },
-        { "from": "dp-canary","to": "dp-full" },
-        { "from": "dp-full",  "to": "dp-ok",     "color": "forest" },
-        { "from": "cs-h",     "to": "dp-h",      "color": "sky", "label": "affects" }
-      ]
-    }
-  ]
+      { "id":"cs-detect",     "label":"Detection", "kind":"sticky", "color":"blue", "branchLayout":"horizontal-row" },
+      { "id":"cs-detect-p99", "label":"P99 spike", "kind":"body" },
+      { "id":"cs-detect-p",   "label":"P99 spike\\n\\nThe defining symptom: a sharp P99 latency spike for the first 30–120s after a deploy or autoscale event, even when P50 looks normal.\\n\\nAlert on (p99_after_deploy - p99_baseline) > 500ms over a 2-minute window. If the spike persists past 5 minutes, you have a real bug, not a cold start.", "kind":"paper" }
+    ],
+    "links": [
+      { "from":"cs-emoji","to":"cs-h" },
+      { "from":"cs-h","to":"cs-causes" },
+      { "from":"cs-causes","to":"cs-cache" },
+      { "from":"cs-cache","to":"cs-cache-p","label":"explain" },
+      { "from":"cs-causes","to":"cs-jit" },
+      { "from":"cs-jit","to":"cs-jit-p","label":"explain" },
+      { "from":"cs-causes","to":"cs-pool" },
+      { "from":"cs-pool","to":"cs-pool-p","label":"explain" },
+      { "from":"cs-h","to":"cs-fixes" },
+      { "from":"cs-fixes","to":"cs-prewarm" },
+      { "from":"cs-prewarm","to":"cs-prewarm-p","label":"explain" },
+      { "from":"cs-fixes","to":"cs-replica" },
+      { "from":"cs-replica","to":"cs-replica-p","label":"explain" },
+      { "from":"cs-h","to":"cs-detect" },
+      { "from":"cs-detect","to":"cs-detect-p99" },
+      { "from":"cs-detect-p99","to":"cs-detect-p","label":"detect" }
+    ]
+  }]
 }
 \`\`\`
 
-══════════════════════════════════════════════════════════
-SELF-CHECK — verify ALL of these before returning
-══════════════════════════════════════════════════════════
-[ ] ≤ 5 sections. 8–15 nodes per section. Total node count between 25 and 50 (more if topic deserves it).
-[ ] Mindmap/tree sections have AT LEAST 3 LEVELS of depth. No flat lists.
-[ ] Every main branch has 2–4 sub-points. Sub-points decompose further where the topic warrants.
-[ ] At least 6 paper-popup nodes used. Major branches have multiple papers (definition / example / fix / caveat) when the topic has distinct facets.
-[ ] Each paper has 3–6 paragraphs of real content with concrete examples, not 1-line stubs.
-[ ] At least 2 image nodes used. Each main branch with a clear visual association has one supporting image (Wikimedia / Unsplash URL).
-[ ] Every leaf is either self-explanatory OR has a paper popup attached. No bare 1-word stubs.
-[ ] Exactly one heading per section. No "Intro" / "Summary" sections.
-[ ] No node fill uses a stroke-tier color. No link uses a pastel color.
-[ ] ≤ 3 distinct sticky colors across the whole board; same color = same theme.
-[ ] heading / body / paper / emoji / image nodes have NO "color" field.
-[ ] No reciprocal links. ≤ 3 outgoing links per node.
-[ ] Default layout is mindmap. flow used ONLY for true ordered sequences (rare).
-[ ] radial reserved for hub-and-spoke ecosystems (equal-tier siblings around a hub).
-[ ] Root node has a branchLayout that fits the topic (or relies on group layout default).
-[ ] Sub-branches that are TIMELINES use horizontal-row; PARALLEL OPTIONS use grid; everything else inherits or uses right-fan/top-down.
-[ ] Don't use radial / 360° layouts past 10 nodes — prefer right-fan or bilateral.
-[ ] Any explanation longer than 4 words lives in a paper node (popup), NOT in a body label.
-[ ] 2–4 image nodes used; each has a publicly fetchable "src" URL (Wikimedia / Unsplash preferred).
-[ ] Emojis: 1 opener per section max, plus optional semantic markers (✅ ⚠️ 🎯) — modest overall.
-[ ] "density" field, when set, is one of "tight" | "normal" | "wide" — used purposefully.
-[ ] Labels ≤ 4 words; arrow labels ≤ 2 words; paragraphs only inside paper nodes.
-[ ] No "x" / "y" fields anywhere.
-[ ] Cross-section links are rare and only bridge concepts, not details.
+═══════════════════════════════════════════
+EXAMPLE B — flow timeline (RARE shape; only when topic is truly sequential)
+═══════════════════════════════════════════
+\`\`\`json
+{
+  "groups": [{
+    "title": "Deploy timeline",
+    "layout": "flow",
+    "density": "tight",
+    "nodes": [
+      { "id":"dp-h",      "label":"Deploy",       "kind":"heading" },
+      { "id":"dp-build",  "label":"Build image",  "kind":"body" },
+      { "id":"dp-canary", "label":"Canary 5%",    "kind":"body" },
+      { "id":"dp-full",   "label":"Full rollout", "kind":"body" },
+      { "id":"dp-ok",     "label":"✅",           "kind":"emoji" }
+    ],
+    "links": [
+      { "from":"dp-h","to":"dp-build" },
+      { "from":"dp-build","to":"dp-canary","label":"5 min" },
+      { "from":"dp-canary","to":"dp-full" },
+      { "from":"dp-full","to":"dp-ok","color":"forest" }
+    ]
+  }]
+}
+\`\`\`
 
-══════════════════════════════════════════════════════════
+═══════════════════════════════════════════
+PRE-FLIGHT — read your PLAN block. If any line below is true, FIX THE PLAN FIRST:
+═══════════════════════════════════════════
+• Papers planned < 6                                            → add more papers
+• Levels deep < 3                                               → decompose further
+• Total nodes < 25                                              → expand sub-branches
+• A section is "Introduction" / "Summary" / "Overview"          → delete it
+• Sticky-color count > 3                                        → merge clusters
+• A heading has 5+ direct sticky children with no sub-levels    → flat list — add intermediate sub-points
+• A sticky has no paper attached anywhere in its subtree        → add a paper
+• A body label is longer than 4 words                           → move the words into a paper
+
+═══════════════════════════════════════════
 NOW BUILD THE BOARD FOR THIS:
-══════════════════════════════════════════════════════════
+═══════════════════════════════════════════
 
 [REPLACE THIS LINE WITH YOUR DESCRIPTION]
 `;
