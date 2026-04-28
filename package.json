@@ -1,0 +1,10 @@
+{
+  "name": "whiteboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A clean whiteboard webapp with text/image nodes, drag-and-drop, panning and zoom.",
+  "scripts": {
+    "dev": "npx --yes serve .",
+    "start": "npx --yes serve ."
+  }
+}
