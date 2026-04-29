@@ -1,571 +1,569 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-  <title>My Playbook</title>
-  <meta name="theme-color" content="#fafaf7" />
-  <link rel="icon" href="https://forcreators.com/wp-content/uploads/2021/03/Playbook-app-logo-scaled.jpeg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Playbook — A workspace for the mind of a founder</title>
+<meta name="description" content="A visual workspace for founders. Drop everything onto an infinite canvas — goals, decisions, half-formed thoughts. No sign-up. Saves locally." />
+<meta name="theme-color" content="#ffffff" />
+<link rel="icon" href="https://forcreators.com/wp-content/uploads/2021/03/Playbook-app-logo-scaled.jpeg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="landing.css?v=4" />
 </head>
 <body>
-  <!-- Board surface fills the viewport -->
-  <main class="board" id="board">
-    <div class="canvas" id="canvas"></div>
 
-    <div class="empty-state" id="empty-state">
-      <div class="empty-card">
-        <div class="empty-eyebrow">
-          <span class="dot"></span>
-          New playbook
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <div class="container nav-inner">
+    <a class="logo" href="#top">
+      <span class="logo-mark">P</span>
+      <span>Playbook</span>
+    </a>
+    <div class="nav-links">
+      <a href="#why">Why</a>
+      <a href="#how">How it works</a>
+      <a href="#who">Who it's for</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="#pricing">Pricing</a>
+      <a class="btn btn-primary" href="lobby.html">Open a board
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero" id="top">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="hero-eyebrow">
+        <span class="dot"></span>
+        <span>v2.0 — now with AI co-pilot</span>
+      </div>
+      <h1 class="h-display">A workspace for the mind of a <em>founder.</em></h1>
+      <p class="lede hero-sub">Empty the mental tabs. Drop everything onto an infinite canvas — goals, decisions, half-formed thoughts — then group, connect, and plan until the noise becomes a path.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary btn-lg" href="lobby.html">
+          Open a board
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </a>
+        <a class="btn btn-ghost btn-lg" href="#hero-video">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5.5v13l11-6.5L7 5.5Z"/></svg>
+          Watch the 90-second tour
+        </a>
+      </div>
+      <div class="hero-meta">
+        <span><span class="check"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-5"/></svg></span> No sign-up</span>
+        <span><span class="check"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-5"/></svg></span> Saves locally</span>
+        <span><span class="check"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-5"/></svg></span> Yours forever</span>
+      </div>
+    </div>
+
+    <!-- Hero video -->
+    <div class="hero-video-wrap">
+      <div class="hero-video" id="hero-video">
+        <div class="video-chrome">
+          <span class="chrome-dots"><span></span><span></span><span></span></span>
+          <span class="chrome-url">playbook.app / boards / q3-plan</span>
+          <span style="width:36px"></span>
         </div>
-        <h1 class="empty-title">Make something beautiful.</h1>
-        <p class="empty-sub">Headings set the structure. Sticky notes capture quick ideas. Paper notes hold the long form. Emojis ✨ and lines tie it together. Right-click anywhere to add — or use the dock.</p>
-        <div class="empty-hints">
-          <span class="hint-chip"><kbd>Right-click</kbd>add menu</span>
-          <span class="hint-chip"><kbd>P</kbd>paper note</span>
-          <span class="hint-chip"><kbd>E</kbd>emoji</span>
-          <span class="hint-chip"><kbd>Ctrl</kbd>+<kbd>Drag</kbd>line</span>
-          <span class="hint-chip"><kbd>?</kbd>shortcuts</span>
+        <div class="video-placeholder">
+          <button class="play-btn" aria-label="Play product tour">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5.5v13l11-6.5L7 5.5Z"/></svg>
+          </button>
         </div>
+        <div class="video-caption">▶ Product tour · 1:48</div>
+      </div>
+      <div class="float-card float-1 sticky-y">
+        <div class="card-label">sticky</div>
+        <div>Hire 1 contractor by May</div>
+      </div>
+      <div class="float-card float-2">
+        <div class="card-label">heading</div>
+        <div style="font-family:var(--serif);font-style:italic;font-size:18px">Q3 plan</div>
+      </div>
+      <div class="float-card float-3 sticky-p">
+        <div class="card-label">paper</div>
+        <div>North star: build a product founders show their friends.</div>
       </div>
     </div>
-  </main>
-
-  <!-- Top-left brand -->
-  <div class="floating top-left">
-    <div class="bar brand-bar">
-      <div class="logo" aria-hidden="true">
-        <img class="logo-img" src="https://forcreators.com/wp-content/uploads/2021/03/Playbook-app-logo-scaled.jpeg" alt="" draggable="false" />
-      </div>
-      <div class="brand-text">
-        <div class="brand-name">My Playbook</div>
-        <div class="brand-sub">Untitled</div>
-      </div>
-    </div>
   </div>
+</header>
 
-  <!-- Top-right actions -->
-  <div class="floating top-right">
-    <div class="bar action-bar">
-      <button class="bar-btn" id="btn-undo" title="Undo (Ctrl+Z)" aria-label="Undo">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>
-      </button>
-      <button class="bar-btn" id="btn-redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 15-6.7L21 13"/></svg>
-      </button>
-      <div class="bar-divider"></div>
-      <button class="bar-btn label" id="btn-ai" title="Generate from AI">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.7 4.3L18 9l-4.3 1.7L12 15l-1.7-4.3L6 9l4.3-1.7z"/><path d="M19 15l.8 2L22 18l-2.2 1L19 21l-.8-2L16 18l2.2-1z"/></svg>
-        <span>AI</span>
-      </button>
-      <button class="bar-btn label" id="btn-file" title="Export & Import">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>
-        <span>File</span>
-      </button>
-      <input type="file" id="project-input" accept="application/json,.json" hidden />
-      <button class="bar-btn danger" id="btn-clear" title="Clear board" aria-label="Clear">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-      </button>
+<!-- WHY -->
+<section class="section section-soft" id="why">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Why Playbook</div>
+      <h2 class="h-section">Built for the way founders <em>actually think.</em></h2>
+      <p class="lede">Not a to-do app. Not another note tool. A canvas you bend around your own brain.</p>
     </div>
-  </div>
+    <div class="why-grid">
 
-  <!-- Bottom-center tool dock -->
-  <div class="floating bottom-center">
-    <div class="bar tool-dock">
-      <button class="tool" draggable="true" data-add="text" data-variant="body" title="Text">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
-      </button>
-      <button class="tool" draggable="true" data-add="text" data-variant="heading" title="Heading">
-        <span class="tool-letter">H</span>
-      </button>
-      <button class="tool" draggable="true" data-add="text" data-variant="sticky" title="Sticky note">
-        <span class="tool-sticky"></span>
-      </button>
-      <button class="tool" id="tool-paper" title="Paper note (long-form)">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h6"/></svg>
-      </button>
-      <button class="tool" id="tool-emoji" title="Emoji or icon">
-        <span class="tool-emoji">✨</span>
-      </button>
-      <button class="tool" id="tool-shape" title="Shape">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="9" height="9" rx="1.6"/><circle cx="16.5" cy="16.5" r="4"/><path d="M14.5 3.5h6v6"/></svg>
-      </button>
-      <div class="bar-divider"></div>
-      <button class="tool" id="tool-image" title="Image — file, URL or paste">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
-        <input type="file" id="image-input" accept="image/*" hidden multiple />
-      </button>
-    </div>
-  </div>
-
-  <!-- Bottom-right zoom + help -->
-  <div class="floating bottom-right">
-    <div class="bar zoom-bar">
-      <button class="bar-btn" id="btn-zoom-out" title="Zoom out" aria-label="Zoom out">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14"/></svg>
-      </button>
-      <button class="bar-btn zoom-label" id="btn-zoom-reset" title="Reset zoom (0)">100%</button>
-      <button class="bar-btn" id="btn-zoom-in" title="Zoom in" aria-label="Zoom in">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      </button>
-      <div class="bar-divider"></div>
-      <button class="bar-btn" id="btn-settings" title="Shortcut settings" aria-label="Shortcut settings">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
-      <button class="bar-btn" id="btn-help" title="Shortcuts (?)" aria-label="Shortcuts">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- Pinned selection toolbar (top-center) -->
-  <div id="float-toolbar" class="selection-bar" hidden>
-    <div class="ft-count" id="ft-count" hidden></div>
-
-    <div class="ft-group" data-for="text">
-      <select id="ft-font" class="ft-select" title="Font">
-        <option value="Geist, system-ui, sans-serif">Geist</option>
-        <option value="'Geist Mono', ui-monospace, monospace">Geist Mono</option>
-        <option value="Inter, system-ui, sans-serif">Inter</option>
-        <option value="Georgia, serif">Georgia</option>
-        <option value="'Times New Roman', serif">Times</option>
-        <option value="'Helvetica Neue', Arial, sans-serif">Helvetica</option>
-        <option value="'Comic Sans MS', cursive">Comic Sans</option>
-        <option value="Impact, sans-serif">Impact</option>
-      </select>
-    </div>
-    <div class="ft-divider" data-for="text"></div>
-
-    <div class="ft-group" data-for="text">
-      <button class="ft-btn icon" id="ft-size-down" title="Decrease size" aria-label="Decrease size">−</button>
-      <input type="number" id="ft-size" class="ft-input" min="8" max="240" />
-      <button class="ft-btn icon" id="ft-size-up" title="Increase size" aria-label="Increase size">+</button>
-    </div>
-    <div class="ft-divider" data-for="text"></div>
-
-    <div class="ft-group" data-for="text">
-      <button class="ft-btn" data-toggle="bold" title="Bold (Ctrl+B)" aria-label="Bold"><span class="ft-letter ft-bold">B</span></button>
-      <button class="ft-btn" data-toggle="italic" title="Italic (Ctrl+I)" aria-label="Italic"><span class="ft-letter ft-italic">I</span></button>
-      <button class="ft-btn" data-toggle="underline" title="Underline (Ctrl+U)" aria-label="Underline"><span class="ft-letter ft-under">U</span></button>
-    </div>
-    <div class="ft-divider" data-for="text"></div>
-
-    <div class="ft-group" data-for="text">
-      <button class="ft-btn icon" data-align="left" title="Align left" aria-label="Align left">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h14"/></svg>
-      </button>
-      <button class="ft-btn icon" data-align="center" title="Align center" aria-label="Align center">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M7 12h10M5 18h14"/></svg>
-      </button>
-      <button class="ft-btn icon" data-align="right" title="Align right" aria-label="Align right">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M10 12h10M6 18h14"/></svg>
-      </button>
-    </div>
-    <div class="ft-divider" data-for="text"></div>
-
-    <div class="ft-group" data-for="text">
-      <label class="ft-color-well" title="Text color">
-        <input type="color" id="ft-color" />
-        <span class="ft-color-letter" id="ft-color-swatch">A</span>
-      </label>
-      <button class="ft-btn icon" id="ft-bg-pop" title="Fill color" aria-label="Fill color">
-        <span class="ft-bg-icon" id="ft-bg-swatch"></span>
-      </button>
-    </div>
-
-    <div class="ft-divider" data-for="text image"></div>
-    <div class="ft-group" data-for="text image">
-      <button class="ft-btn icon" id="ft-border-pop" title="Border">
-        <span class="ft-border-icon" id="ft-border-swatch"></span>
-      </button>
-    </div>
-
-    <div class="ft-group" data-for="shape">
-      <button class="ft-btn icon" id="ft-shape-fill" title="Fill color" aria-label="Fill color">
-        <span class="ft-bg-icon" id="ft-shape-fill-swatch"></span>
-      </button>
-    </div>
-    <div class="ft-divider" data-for="shape"></div>
-    <div class="ft-group" data-for="shape">
-      <label class="ft-slider" title="Roundness">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10a6 6 0 0 1 6-6h10"/></svg>
-        <input type="range" id="ft-shape-radius" min="0" max="80" step="1" />
-      </label>
-    </div>
-
-    <div class="ft-group" data-for="line">
-      <label class="ft-color-well" title="Line color">
-        <input type="color" id="ft-stroke" />
-        <span class="ft-stroke-bar" id="ft-stroke-swatch"></span>
-      </label>
-    </div>
-    <div class="ft-divider" data-for="line"></div>
-    <div class="ft-group" data-for="line">
-      <label class="ft-slider" title="Line width">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12h16"/></svg>
-        <input type="range" id="ft-line-width" min="1" max="12" />
-      </label>
-    </div>
-    <div class="ft-divider" data-for="line"></div>
-    <div class="ft-group" data-for="line">
-      <button class="ft-btn icon" id="ft-arrow" title="Toggle arrow" aria-label="Toggle arrow">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
-      </button>
-    </div>
-
-    <div class="ft-divider"></div>
-    <div class="ft-group">
-      <button class="ft-btn icon" id="ft-front" title="Bring to front">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="13" height="13" rx="2"/><path d="M16 16v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h3"/></svg>
-      </button>
-      <button class="ft-btn icon" id="ft-back" title="Send to back">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="13" height="13" rx="2"/><path d="M8 8V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-3"/></svg>
-      </button>
-      <button class="ft-btn icon" id="ft-duplicate" title="Duplicate (Ctrl+D)">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
-      </button>
-      <button class="ft-btn icon danger" id="ft-delete" title="Delete (Del)">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- Background fill popover -->
-  <div id="bg-popover" class="popover" hidden>
-    <div class="popover-row">
-      <label class="ft-color-well solid" title="Custom fill">
-        <input type="color" id="ft-bg" />
-        <span class="ft-color-square" id="ft-bg-current"></span>
-      </label>
-      <button class="ghost-btn" id="ft-bg-clear">No fill</button>
-    </div>
-    <div class="popover-label">Sticky tones</div>
-    <div class="swatch-row" id="paper-swatches"></div>
-    <div class="popover-label">All colors</div>
-    <div class="swatch-grid" id="bg-swatches"></div>
-  </div>
-
-  <!-- Border popover -->
-  <div id="border-popover" class="popover" hidden>
-    <div class="popover-label">Border color</div>
-    <div class="popover-row">
-      <label class="ft-color-well solid" title="Border color">
-        <input type="color" id="ft-border-color" />
-        <span class="ft-color-square" id="ft-border-current"></span>
-      </label>
-      <button class="ghost-btn" id="ft-border-clear">No border</button>
-    </div>
-    <div class="swatch-row" id="border-swatches"></div>
-    <div class="popover-label">Width</div>
-    <div class="slider-row">
-      <input type="range" id="ft-border-width" min="0" max="12" step="1" />
-      <span class="slider-val" id="ft-border-width-val">0px</span>
-    </div>
-    <div class="popover-label">Corner radius</div>
-    <div class="slider-row">
-      <input type="range" id="ft-border-radius" min="0" max="64" step="1" />
-      <span class="slider-val" id="ft-border-radius-val">12px</span>
-    </div>
-  </div>
-
-  <!-- Shape picker popover -->
-  <div id="shape-popover" class="popover shape-popover" hidden>
-    <div class="popover-label">Shape</div>
-    <div class="shape-grid" id="shape-grid"></div>
-  </div>
-
-  <!-- Right-click context menu (add nodes at cursor) -->
-  <div id="context-menu" class="context-menu" hidden>
-    <button class="ctx-item" data-action="text" data-variant="body">
-      <span class="ctx-icon">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
-      </span>
-      <span class="ctx-label">Text</span>
-      <kbd class="ctx-key" data-key-for="text"></kbd>
-    </button>
-    <button class="ctx-item" data-action="text" data-variant="heading">
-      <span class="ctx-icon"><span class="ctx-letter">H</span></span>
-      <span class="ctx-label">Heading</span>
-      <kbd class="ctx-key" data-key-for="heading"></kbd>
-    </button>
-    <button class="ctx-item" data-action="text" data-variant="sticky">
-      <span class="ctx-icon"><span class="ctx-sticky"></span></span>
-      <span class="ctx-label">Sticky note</span>
-      <kbd class="ctx-key" data-key-for="sticky"></kbd>
-    </button>
-    <button class="ctx-item" data-action="paper">
-      <span class="ctx-icon">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h6"/></svg>
-      </span>
-      <span class="ctx-label">Paper note…</span>
-      <kbd class="ctx-key" data-key-for="paper"></kbd>
-    </button>
-    <button class="ctx-item" data-action="emoji">
-      <span class="ctx-icon"><span class="ctx-emoji">✨</span></span>
-      <span class="ctx-label">Emoji / icon…</span>
-      <kbd class="ctx-key" data-key-for="emoji"></kbd>
-    </button>
-    <div class="ctx-divider"></div>
-    <button class="ctx-item" data-action="image">
-      <span class="ctx-icon">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
-      </span>
-      <span class="ctx-label">Image…</span>
-      <kbd class="ctx-key" data-key-for="image"></kbd>
-    </button>
-    <button class="ctx-item" data-action="line">
-      <span class="ctx-icon">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
-      </span>
-      <span class="ctx-label">Line</span>
-      <kbd class="ctx-key" data-key-for="line"></kbd>
-    </button>
-  </div>
-
-  <!-- File popover (export / import) -->
-  <div id="file-popover" class="popover file-popover" hidden>
-    <button class="ctx-item" id="file-export-png">
-      <span class="ctx-icon">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
-      </span>
-      <span class="ctx-label">Export as PNG</span>
-    </button>
-    <button class="ctx-item" id="file-export-project">
-      <span class="ctx-icon">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M21 21H3"/></svg>
-      </span>
-      <span class="ctx-label">Export project (.json)</span>
-    </button>
-    <div class="ctx-divider"></div>
-    <button class="ctx-item" id="file-import-project">
-      <span class="ctx-icon">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M21 3H3"/></svg>
-      </span>
-      <span class="ctx-label">Import project (.json)</span>
-    </button>
-    <div class="ctx-divider"></div>
-    <button class="ctx-item" id="file-copy-code">
-      <span class="ctx-icon">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-      </span>
-      <span class="ctx-label">Copy board as code</span>
-    </button>
-    <button class="ctx-item" id="file-paste-code">
-      <span class="ctx-icon">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="13" height="13" rx="2"/><path d="m9 8 3 3-3 3"/></svg>
-      </span>
-      <span class="ctx-label">Paste / edit code…</span>
-    </button>
-  </div>
-
-  <!-- Paper note modal — long-form structured note -->
-  <div id="paper-modal" class="modal" hidden>
-    <div class="modal-backdrop" data-close></div>
-    <div class="modal-card">
-      <div class="modal-head">
-        <div>
-          <div class="modal-eyebrow"><span class="dot"></span> Paper note</div>
-          <div class="modal-title">Write something thoughtful.</div>
-          <div class="modal-sub">Use the title to set the topic, the body for explanations, lists or links. Press <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to add it to the board.</div>
+      <div class="why-card">
+        <div class="why-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5a3 3 0 0 0-3 3v0a3 3 0 0 0-2 5.5A3 3 0 0 0 6 19a3 3 0 0 0 3 0V5Z"/><path d="M15 5a3 3 0 0 1 3 3v0a3 3 0 0 1 2 5.5A3 3 0 0 1 18 19a3 3 0 0 1-3 0V5Z"/></svg>
         </div>
-        <button class="modal-x" data-close aria-label="Close">×</button>
-      </div>
-      <input id="paper-title" class="modal-input" type="text" placeholder="Title (optional)" />
-      <textarea id="paper-body" class="modal-textarea" rows="10" placeholder="Write your note here…&#10;&#10;Tips:&#10;• Use blank lines to separate paragraphs&#10;• Add emoji or symbols ✨ for visual anchors&#10;• Paste code, links, or quotes — they're preserved"></textarea>
-      <div class="modal-actions">
-        <button class="ghost-btn" data-close>Cancel</button>
-        <button class="primary-btn" id="paper-add">Add to board</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Paper VIEW modal — read-only popup for compact paper tiles -->
-  <div id="paper-view-modal" class="modal" hidden>
-    <div class="modal-backdrop" data-close></div>
-    <div class="modal-card">
-      <div class="modal-head">
-        <div>
-          <div class="modal-eyebrow"><span class="dot"></span> Paper note</div>
-          <div class="modal-title" id="paper-view-title">Paper note</div>
-        </div>
-        <button class="modal-x" data-close aria-label="Close">×</button>
-      </div>
-      <div class="paper-view-body" id="paper-view-body"></div>
-      <div class="modal-actions">
-        <button class="primary-btn" data-close>Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Image VIEW modal — open an image fullscreen on double-click -->
-  <div id="image-view-modal" class="modal" hidden>
-    <div class="modal-backdrop" data-close></div>
-    <div class="modal-card image-view-card">
-      <div class="modal-head">
-        <div>
-          <div class="modal-eyebrow"><span class="dot"></span> Image</div>
-          <div class="modal-title" id="image-view-title">Image</div>
-        </div>
-        <button class="modal-x" data-close aria-label="Close">×</button>
-      </div>
-      <div class="image-view-body">
-        <img id="image-view-img" alt="" />
-      </div>
-      <div class="modal-actions">
-        <a id="image-view-open" target="_blank" rel="noopener" class="ghost-btn" hidden>Open original ↗</a>
-        <button class="primary-btn" data-close>Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Image-by-URL modal -->
-  <div id="image-modal" class="modal" hidden>
-    <div class="modal-backdrop" data-close></div>
-    <div class="modal-card image-card">
-      <div class="modal-head">
-        <div>
-          <div class="modal-eyebrow"><span class="dot"></span> Add image</div>
-          <div class="modal-title">From a URL or your device.</div>
-        </div>
-        <button class="modal-x" data-close aria-label="Close">×</button>
-      </div>
-      <input id="image-url" class="modal-input" type="url" placeholder="https://example.com/image.png" />
-      <div class="modal-actions">
-        <button class="ghost-btn" id="image-pick-file">Pick file…</button>
-        <button class="primary-btn" id="image-add-url">Add from URL</button>
-      </div>
-      <div class="modal-hint">Tip: you can also paste an image directly with <kbd>Ctrl</kbd>+<kbd>V</kbd> or drag a file onto the board.</div>
-    </div>
-  </div>
-
-  <!-- Emoji picker -->
-  <div id="emoji-popover" class="popover emoji-popover" hidden>
-    <div class="popover-label">Pick an emoji or icon</div>
-    <div class="emoji-grid" id="emoji-grid"></div>
-    <div class="popover-label">Or type your own</div>
-    <div class="popover-row">
-      <input type="text" id="emoji-custom" class="modal-input" placeholder="Paste any character — e.g. 🚀, ★, λ" />
-      <button class="primary-btn" id="emoji-custom-add">Add</button>
-    </div>
-  </div>
-
-  <!-- Paste code modal -->
-  <div id="code-modal" class="modal" hidden>
-    <div class="modal-backdrop" data-close></div>
-    <div class="modal-card">
-      <div class="modal-head">
-        <div>
-          <div class="modal-eyebrow"><span class="dot"></span> Code</div>
-          <div class="modal-title">Edit or extend your board as JSON.</div>
-          <div class="modal-sub">Paste a code snippet to <em>add nodes</em> to the current board, or replace everything. The board's current state is pre-filled below.</div>
-        </div>
-        <button class="modal-x" data-close aria-label="Close">×</button>
-      </div>
-      <textarea id="code-textarea" class="modal-textarea code" rows="14" spellcheck="false"></textarea>
-      <div class="modal-actions">
-        <button class="ghost-btn" data-close>Cancel</button>
-        <button class="ghost-btn" id="code-add">Add to board</button>
-        <button class="primary-btn" id="code-replace">Replace board</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Settings popover (shortcut bindings) -->
-  <div id="settings-popover" class="popover settings-popover" hidden>
-    <div class="popover-title">Shortcut settings</div>
-    <div class="popover-label">Press a key after clicking a binding</div>
-    <div id="shortcut-rows" class="shortcut-rows"></div>
-    <div class="popover-row settings-actions">
-      <button class="ghost-btn" id="btn-shortcuts-reset">Reset to defaults</button>
-    </div>
-  </div>
-
-  <!-- Help popover -->
-  <div id="help-popover" class="popover help-popover" hidden>
-    <div class="popover-title">Shortcuts</div>
-    <div class="kv"><span>Add node menu</span><kbd>Right-click</kbd></div>
-    <div class="kv"><span>Add text at cursor</span><kbd data-help-key="text"></kbd></div>
-    <div class="kv"><span>Add heading at cursor</span><kbd data-help-key="heading"></kbd></div>
-    <div class="kv"><span>Add sticky at cursor</span><kbd data-help-key="sticky"></kbd></div>
-    <div class="kv"><span>Add paper note</span><kbd data-help-key="paper"></kbd></div>
-    <div class="kv"><span>Add emoji / icon</span><kbd data-help-key="emoji"></kbd></div>
-    <div class="kv"><span>Add image</span><kbd data-help-key="image"></kbd></div>
-    <div class="kv"><span>Add line at cursor</span><kbd data-help-key="line"></kbd></div>
-    <div class="kv"><span>Bring to front</span><kbd data-help-key="front"></kbd></div>
-    <div class="kv"><span>Send to back</span><kbd data-help-key="back"></kbd></div>
-    <div class="kv"><span>Select area</span><kbd>Drag empty</kbd></div>
-    <div class="kv"><span>Pan</span><kbd>Space + drag</kbd></div>
-    <div class="kv"><span>Zoom</span><kbd>Scroll</kbd></div>
-    <div class="kv"><span>Reset view</span><kbd>0</kbd></div>
-    <div class="kv"><span>Edit text</span><kbd>Double-click</kbd></div>
-    <div class="kv"><span>Draw line</span><kbd>Ctrl+drag</kbd></div>
-    <div class="kv"><span>Multi-select</span><kbd>Shift+click</kbd></div>
-    <div class="kv"><span>Select all</span><kbd>Ctrl+A</kbd></div>
-    <div class="kv"><span>Duplicate</span><kbd>Ctrl+D</kbd></div>
-    <div class="kv"><span>Copy / Paste</span><kbd>Ctrl+C / V</kbd></div>
-    <div class="kv"><span>Undo / Redo</span><kbd>Ctrl+Z</kbd></div>
-    <div class="kv"><span>Bold / Italic / Underline</span><kbd>Ctrl+B / I / U</kbd></div>
-    <div class="kv"><span>Delete</span><kbd>Del</kbd></div>
-    <div class="kv"><span>Nudge</span><kbd>Arrows</kbd></div>
-  </div>
-
-  <!-- AI generate modal -->
-  <div id="ai-modal" class="ai-modal" hidden>
-    <div class="ai-backdrop" id="ai-backdrop"></div>
-    <div class="ai-card" role="dialog" aria-labelledby="ai-title" aria-modal="true">
-      <div class="ai-head">
-        <div>
-          <div class="ai-eyebrow">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.7 4.3L18 9l-4.3 1.7L12 15l-1.7-4.3L6 9l4.3-1.7z"/></svg>
-            AI generate
+        <h3>Clear the mental noise</h3>
+        <p>Dump everything — projects, fears, ideas, deadlines — onto an infinite canvas. Stop holding it in your head.</p>
+        <div class="why-visual">
+          <div class="mini-board">
+            <div class="mb-sticky" style="top:8px;left:12px;transform:rotate(-3deg)">fix onboarding</div>
+            <div class="mb-sticky" style="top:22px;left:70px;transform:rotate(2deg);background:#ffd9d2;border-color:#f5b8ad">call lawyer</div>
+            <div class="mb-sticky" style="top:50px;left:30px;transform:rotate(-1deg)">hire #2</div>
+            <div class="mb-sticky" style="top:64px;left:100px;transform:rotate(3deg);background:#d2ecff;border-color:#a8d4f5">raise?</div>
+            <div class="mb-sticky" style="top:78px;left:18px;transform:rotate(-2deg)">sleep</div>
           </div>
-          <div class="ai-title" id="ai-title">Design a board with AI</div>
-          <div class="ai-sub">Describe an idea to any AI chat. Paste its JSON reply here. The board builds itself — headings, paper notes, sticky groups, emojis, lines and arrows. The schema is embedded in the prompt below.</div>
         </div>
-        <button class="bar-btn" id="ai-close" aria-label="Close">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </div>
+
+      <div class="why-card">
+        <div class="why-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+        </div>
+        <h3>Plan goals that move</h3>
+        <p>Headings for direction, sticky notes for atoms of action, paper notes for the long thinking. Connect them with arrows.</p>
+        <div class="why-visual">
+          <div class="mini-board">
+            <div class="mb-heading" style="top:6px;left:10px">Q3 plan</div>
+            <div class="mb-sticky" style="top:30px;left:14px">ship beta</div>
+            <div class="mb-sticky" style="top:30px;left:80px">5 customers/wk</div>
+            <div class="mb-paper" style="top:60px;left:14px;width:100px">Hire one contractor by May. Don't burn out.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="why-card">
+        <div class="why-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+        </div>
+        <h3>One project per chapter of life</h3>
+        <p>Keep your company, your launch, your life plan, and your weekend ideas in separate boards. Switch with a click.</p>
+        <div class="why-visual">
+          <div class="mini-board">
+            <div style="position:absolute;top:8px;left:8px;font-size:9px;font-family:var(--mono);color:var(--muted);display:flex;gap:4px">
+              <span style="padding:3px 7px;background:var(--ink);color:#fff;border-radius:4px">Company</span>
+              <span style="padding:3px 7px;background:#fff;border:1px solid var(--line);border-radius:4px">2026</span>
+              <span style="padding:3px 7px;background:#fff;border:1px solid var(--line);border-radius:4px">Health</span>
+            </div>
+            <div class="mb-sticky" style="top:36px;left:14px">launch v2</div>
+            <div class="mb-sticky" style="top:36px;left:76px">fix marketing</div>
+            <div class="mb-paper" style="top:62px;left:14px;width:100px">Click between boards. Each is its own world.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="why-card">
+        <div class="why-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><path d="M7 6 17 18M17 6 7 18"/></svg>
+        </div>
+        <h3>Connect the dots</h3>
+        <p>Pull lines and arrows between any two things. Make hidden dependencies visible — the "if I do this, then that breaks" graph.</p>
+        <div class="why-visual">
+          <div class="mini-board">
+            <div class="mb-sticky" style="top:14px;left:10px">price ↑</div>
+            <div class="mb-sticky" style="top:14px;left:90px">churn ↑?</div>
+            <div class="mb-sticky" style="top:64px;left:10px">add tier</div>
+            <div class="mb-sticky" style="top:64px;left:90px">retention</div>
+            <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 200 110" preserveAspectRatio="none">
+              <defs>
+                <marker id="a1" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                  <path d="M0 0 6 3 0 6Z" fill="#0a0a0a"/>
+                </marker>
+              </defs>
+              <path d="M50 22 Q100 8 130 22" stroke="#0a0a0a" stroke-width="1" fill="none" marker-end="url(#a1)"/>
+              <path d="M50 72 Q100 90 130 72" stroke="#0a0a0a" stroke-width="1" fill="none" marker-end="url(#a1)"/>
+              <path d="M30 38 Q14 55 30 62" stroke="#0a0a0a" stroke-width="1" fill="none" marker-end="url(#a1)"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="why-card">
+        <div class="why-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></svg>
+        </div>
+        <h3>Build with AI as a co-pilot</h3>
+        <p>Describe a plan to ChatGPT or Claude — paste the JSON back, the board lays itself out. Or copy your board and ask for edits.</p>
+        <div class="why-visual">
+          <div class="mini-board">
+            <div style="position:absolute;top:8px;left:10px;right:10px;padding:8px 10px;background:#fff;border:1px solid var(--line);border-radius:6px;font-family:var(--mono);font-size:8px;color:var(--muted-2);line-height:1.4">
+              <div style="color:var(--gold-3)">{ board: [</div>
+              <div>&nbsp;&nbsp;{ type:"sticky", text:"hire", x:40 },</div>
+              <div>&nbsp;&nbsp;{ type:"goal", text:"Q3" } ]</div>
+              <div style="color:var(--gold-3)">}</div>
+            </div>
+            <div class="mb-sticky" style="bottom:8px;left:14px">hire</div>
+            <div class="mb-sticky" style="bottom:8px;left:70px">Q3</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="why-card">
+        <div class="why-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/><path d="M3 21h18"/><circle cx="15" cy="13" r="0.8" fill="currentColor"/></svg>
+        </div>
+        <h3>Stays out of your way</h3>
+        <p>No accounts, no syncing prompts, no notifications. Open the tab, work, close it. Your mind, your machine.</p>
+        <div class="why-visual">
+          <div class="mini-board" style="display:grid;place-items:center">
+            <div style="font-family:var(--mono);font-size:10px;color:var(--muted-2);text-align:center;line-height:1.6">
+              <div>○ no account</div>
+              <div>○ no sync</div>
+              <div>○ no notifications</div>
+              <div style="color:var(--ink);margin-top:6px">● just a tab</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="section" id="how">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">How it works</div>
+      <h2 class="h-section">Three minutes to <em>clarity.</em></h2>
+    </div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-text">
+          <div class="step-num">01</div>
+          <h3>Make a board for what's loud right now.</h3>
+          <p>One per topic — your company, your launch, your year, your move. Boards keep the thinking separate so it doesn't bleed.</p>
+        </div>
+        <div class="step-video">
+          <button class="play-btn" aria-label="Play step 1">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5.5v13l11-6.5L7 5.5Z"/></svg>
+          </button>
+          <div class="video-caption">0:42 — Creating boards</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-text">
+          <div class="step-num">02</div>
+          <h3>Pour your head onto it.</h3>
+          <p>Right-click anywhere to drop a sticky, a heading, or a long-form paper note. Don't edit yet — just empty.</p>
+        </div>
+        <div class="step-video">
+          <button class="play-btn" aria-label="Play step 2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5.5v13l11-6.5L7 5.5Z"/></svg>
+          </button>
+          <div class="video-caption">1:15 — Dumping the brain</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-text">
+          <div class="step-num">03</div>
+          <h3>Group, connect, decide.</h3>
+          <p>Cluster what belongs together. Draw arrows between cause and effect. Pin the next move. Close the tab — it's safe.</p>
+        </div>
+        <div class="step-video">
+          <button class="play-btn" aria-label="Play step 3">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5.5v13l11-6.5L7 5.5Z"/></svg>
+          </button>
+          <div class="video-caption">1:48 — Making the path</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- WHO -->
+<section class="section section-soft" id="who">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Who it's for</div>
+      <h2 class="h-section">If your brain doesn't fit in <em>a list.</em></h2>
+    </div>
+    <div class="persona-grid">
+      <div class="persona">
+        <div class="persona-glyph">S</div>
+        <h4>Solo founders</h4>
+        <p>Strategy, marketing, hiring, product — all in one head, all at the same time. Get them onto a wall.</p>
+      </div>
+      <div class="persona">
+        <div class="persona-glyph">I</div>
+        <h4>Indie makers</h4>
+        <p>Five projects, one of you. Park the others without forgetting them. Pick one back up where you left it.</p>
+      </div>
+      <div class="persona">
+        <div class="persona-glyph">O</div>
+        <h4>Operators</h4>
+        <p>Untangle a quarter, a launch, a hire. See the moving parts, then the load-bearing ones.</p>
+      </div>
+      <div class="persona">
+        <div class="persona-glyph">Y</div>
+        <h4>Year-planners</h4>
+        <p>Health, money, work, relationships — life isn't a Trello column. Map it like a real map.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Pricing</div>
+      <h2 class="h-section">Pay once. <em>Or pay nothing extra.</em></h2>
+      <p class="lede">No trial games. Pick monthly if you want flexibility — or grab the lifetime deal before slots run out.</p>
+    </div>
+
+    <div class="pricing-bar">
+      <div class="urgency-banner">
+        <span class="pulse-dot"></span>
+        <span>LIMITED · Only <b style="color:var(--ink)" id="seats-left">47</b> of <span id="seats-total">100</span> lifetime seats left</span>
+        <span class="countdown">
+          <b id="cd-h">23</b>:<b id="cd-m">00</b>:<b id="cd-s">00</b>
+        </span>
+      </div>
+    </div>
+
+    <div class="pricing-grid">
+      <!-- Yearly -->
+      <div class="price-card">
+        <div class="price-name">Yearly <small>Flexible</small></div>
+        <div class="price-amount">
+          <span class="num">$4.99</span>
+          <span class="per">/ month, billed yearly</span>
+        </div>
+        <div class="price-amount" style="margin-top:-12px">
+          <span class="strike">$59.88</span>
+          <span style="font-size:14px;color:var(--ink)">$47.90 / year</span>
+          <span class="save">Save 20%</span>
+        </div>
+        <div class="price-tag">For founders who want to <b>try the rhythm</b> before committing.</div>
+        <ul class="price-features">
+          <li><span class="tick"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-5"/></svg></span> Unlimited boards</li>
+          <li><span class="tick"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-5"/></svg></span> Stickies, headings, paper notes, arrows</li>
+          <li><span class="tick"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-5"/></svg></span> AI co-pilot (paste-to-board)</li>
+          <li><span class="tick"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-5"/></svg></span> Optional encrypted sync</li>
+          <li><span class="tick"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-5"/></svg></span> Cancel anytime</li>
+        </ul>
+        <a class="btn btn-ghost btn-lg" href="lobby.html">Start yearly</a>
+      </div>
+
+      <!-- Lifetime -->
+      <div class="price-card gold">
+        <div class="price-badge">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M9 1 3 9h4l-1 6 6-8H8l1-6Z"/></svg>
+          Limited offer · <span id="seats-left-2">47</span> left
+        </div>
+        <div class="price-name">Lifetime <small>★ Best value</small></div>
+        <div class="price-amount">
+          <span class="num">$9.99</span>
+          <span class="per">once · forever</span>
+        </div>
+        <div class="price-amount" style="margin-top:-12px">
+          <span class="strike">$29</span>
+          <span class="save">66% off · today only</span>
+        </div>
+        <div class="price-tag">One payment. <b>Every feature, forever.</b> No renewals, no surprise migrations.</div>
+        <ul class="price-features">
+          <li><span class="tick"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-5"/></svg></span> Everything in Yearly</li>
+          <li><span class="tick"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-5"/></svg></span> Forever access — every future feature</li>
+          <li><span class="tick"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-5"/></svg></span> Founding-member badge</li>
+          <li><span class="tick"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-5"/></svg></span> Direct line to the maker</li>
+          <li><span class="tick"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5 5 9l4.5-5"/></svg></span> Locked at $9.99 — never increases</li>
+        </ul>
+        <div class="scarcity-meter">
+          <div class="scarcity-bar"><div class="scarcity-fill" id="scarcity-fill" style="width:53%"></div></div>
+          <div><span id="seats-claimed">53</span> of <span id="seats-total-2">100</span> claimed · price returns to $29 in <span id="cd-h-2">23</span>h <span id="cd-m-2">00</span>m</div>
+        </div>
+        <a class="btn btn-gold btn-lg" href="lobby.html">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M9 1 3 9h4l-1 6 6-8H8l1-6Z"/></svg>
+          Claim lifetime — $9.99
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section section-soft">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">From the field</div>
+      <h2 class="h-section">Founders who stopped <em>juggling tabs.</em></h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi">
+        <p class="testi-quote">“I closed 12 tabs and my Notes app on the same day. Haven't gone back.”</p>
+        <div class="testi-who">
+          <div class="testi-avatar">M</div>
+          <div>
+            <div class="testi-name">Maya R.</div>
+            <div class="testi-role">Founder, Quiethouse</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi">
+        <p class="testi-quote">“It's the first planning tool that doesn't punish me for thinking nonlinearly.”</p>
+        <div class="testi-who">
+          <div class="testi-avatar">T</div>
+          <div>
+            <div class="testi-name">Theo K.</div>
+            <div class="testi-role">Indie maker · 4 apps</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi">
+        <p class="testi-quote">“I planned a launch, a hire, and Q3 in one afternoon. The arrows did most of the work.”</p>
+        <div class="testi-who">
+          <div class="testi-avatar">P</div>
+          <div>
+            <div class="testi-name">Priya V.</div>
+            <div class="testi-role">Ops lead, fintech</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="container-narrow">
+    <div class="section-head">
+      <div class="eyebrow">FAQ</div>
+      <h2 class="h-section">Questions, <em>answered.</em></h2>
+    </div>
+    <div class="faq-list" id="faq-list">
+      <div class="faq-item open">
+        <button class="faq-q" type="button">
+          <span>Do I need an account?</span>
+          <span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg></span>
         </button>
+        <div class="faq-a">No. Playbook saves locally to your browser. Open the tab, work, close it. Your boards are yours — they never touch a server.</div>
       </div>
-
-      <div class="ai-step">
-        <div class="ai-step-num">1</div>
-        <div class="ai-step-body">
-          <div class="ai-step-title">Copy the prompt + schema</div>
-          <div class="ai-step-text">Paste it into ChatGPT, Claude, Gemini, or any chat. The prompt teaches the model exactly how to structure its reply — node kinds (heading / body / sticky / paper / emoji), sections with their own layout, links with colors and labels. Replace the last line with what you want to map.</div>
-          <div class="ai-row">
-            <button class="ghost-btn" id="ai-copy">Copy AI prompt</button>
-            <button class="ghost-btn" id="ai-show-schema" type="button">Peek at schema</button>
-            <button class="ghost-btn" id="ai-copy-board" type="button">Copy current board</button>
-            <span class="ai-flash" id="ai-copied" hidden>Copied</span>
-          </div>
-          <pre class="ai-schema-preview" id="ai-schema-preview" hidden></pre>
-        </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button">
+          <span>What does "lifetime" actually mean?</span>
+          <span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg></span>
+        </button>
+        <div class="faq-a">One payment, every future feature, forever. No renewals, no surprise migration to a subscription. We mean it — that's why the slots are limited.</div>
       </div>
-
-      <div class="ai-step">
-        <div class="ai-step-num">2</div>
-        <div class="ai-step-body">
-          <div class="ai-step-title">Paste the AI's reply</div>
-          <div class="ai-step-text">Paste the whole JSON block (with or without the <code>```json</code> fences).</div>
-          <label class="ai-merge-row">
-            <input type="checkbox" id="ai-edit-mode" />
-            <span>Edit existing board (merge by ID)</span>
-          </label>
-          <textarea class="ai-textarea" id="ai-input" placeholder='{ "nodes": [...], "links": [...] }' spellcheck="false"></textarea>
-          <div class="ai-error" id="ai-error" hidden></div>
-          <div class="ai-row end">
-            <button class="ghost-btn" id="ai-clear-input">Clear</button>
-            <button class="ai-primary" id="ai-import">Add to board</button>
-          </div>
-        </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button">
+          <span>How is this different from Notion / Miro / Figma?</span>
+          <span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg></span>
+        </button>
+        <div class="faq-a">Notion is a list tool. Miro is a meeting tool. Playbook is a thinking tool — designed for one person dumping a brain on a canvas, not a team collaborating.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button">
+          <span>Can I export my boards?</span>
+          <span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg></span>
+        </button>
+        <div class="faq-a">Yes. One click exports to JSON, Markdown, or PNG. You can also paste boards into ChatGPT or Claude and ask them to edit, then paste back.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button">
+          <span>Will my data sync between devices?</span>
+          <span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg></span>
+        </button>
+        <div class="faq-a">Optional. By default, boards live on your device. Turn on encrypted sync if you want them on your phone too. Off by default, always.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button">
+          <span>What happens after the lifetime offer ends?</span>
+          <span class="icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg></span>
+        </button>
+        <div class="faq-a">Lifetime goes back to $29. Existing lifetime owners keep everything forever — including features released years from now.</div>
       </div>
     </div>
   </div>
+</section>
 
-  <script src="app.js"></script>
+<!-- FINAL CTA -->
+<section class="final-cta" id="cta">
+  <div class="container-narrow">
+    <h2>Stop carrying it. <em>Start mapping it.</em></h2>
+    <p>Open a fresh board, drop in the first thing on your mind, and watch the rest follow.</p>
+    <div class="hero-ctas" style="justify-content:center">
+      <a class="btn btn-gold btn-lg" href="lobby.html">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M9 1 3 9h4l-1 6 6-8H8l1-6Z"/></svg>
+        Claim lifetime — $9.99
+      </a>
+      <a class="btn btn-ghost btn-lg" href="lobby.html">Start yearly · $4.99/mo</a>
+    </div>
+    <div style="margin-top:20px;font-family:var(--mono);font-size:12px;color:rgba(255,255,255,0.45)">
+      No sign-up to try · Saves locally · 30-day refund
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <a class="logo" href="#top">
+      <span class="logo-mark">P</span>
+      <span>Playbook</span>
+    </a>
+    <div style="font-family:var(--serif);font-style:italic;color:rgba(255,255,255,0.5)">
+      Made for builders who think in pictures.
+    </div>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="mailto:hi@playbook.app">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // Nav scroll state
+  var nav = document.getElementById('nav');
+  var onScroll = function(){
+    if (window.scrollY > 8) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // FAQ accordion
+  document.getElementById('faq-list').addEventListener('click', function(e){
+    var btn = e.target.closest('.faq-q');
+    if (!btn) return;
+    var item = btn.parentElement;
+    var wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(function(el){ el.classList.remove('open'); });
+    if (!wasOpen) item.classList.add('open');
+  });
+
+  // Countdown — 23h from now, ticking each second
+  var target = Date.now() + 23 * 3600 * 1000;
+  function pad(n){ return String(n).padStart(2, '0'); }
+  function tick(){
+    var diff = Math.max(0, target - Date.now());
+    var h = Math.floor(diff / 3600000);
+    var m = Math.floor((diff % 3600000) / 60000);
+    var s = Math.floor((diff % 60000) / 1000);
+    var H = pad(h), M = pad(m), S = pad(s);
+    var $1 = document.getElementById('cd-h'); if ($1) $1.textContent = H;
+    var $2 = document.getElementById('cd-m'); if ($2) $2.textContent = M;
+    var $3 = document.getElementById('cd-s'); if ($3) $3.textContent = S;
+    var $4 = document.getElementById('cd-h-2'); if ($4) $4.textContent = H;
+    var $5 = document.getElementById('cd-m-2'); if ($5) $5.textContent = M;
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+
 </body>
 </html>

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Your boards · Playbook</title>
+<meta name="theme-color" content="#ffffff" />
+<link rel="icon" href="https://forcreators.com/wp-content/uploads/2021/03/Playbook-app-logo-scaled.jpeg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="landing.css?v=4" />
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav scrolled" id="nav">
+  <div class="container nav-inner">
+    <a class="logo" href="index.html">
+      <span class="logo-mark">P</span>
+      <span>Playbook</span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="index.html#faq">FAQ</a>
+    </div>
+    <div class="nav-cta">
+      <button class="btn btn-primary" id="new-project-btn" type="button">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
+        New project
+      </button>
+    </div>
+  </div>
+</nav>
+
+<section class="lobby">
+  <div class="container">
+
+    <div class="lobby-head">
+      <div>
+        <div class="eyebrow">Your workspace</div>
+        <h1 class="h-section">What are we untangling <em>today?</em></h1>
+        <p class="lede">Each project is its own infinite canvas. Make one for every chapter — your company, your year, the launch, the move, the side bet.</p>
+      </div>
+
+      <div class="lobby-tools">
+        <label class="lobby-search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="text" id="search" placeholder="Search projects…" />
+        </label>
+        <select id="sort" class="lobby-select" aria-label="Sort">
+          <option value="updated">Recently updated</option>
+          <option value="created">Recently created</option>
+          <option value="name">Name (A–Z)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="lobby-empty" id="empty" hidden>
+      <div class="lobby-empty-card">
+        <div class="eyebrow">Nothing here yet</div>
+        <h2>Open your <em>first board.</em></h2>
+        <p>It will live on this device — no account, no sync, no nag. Yours to keep, delete, export.</p>
+        <button class="btn btn-primary btn-lg" id="empty-new-btn" type="button">
+          Create a project
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Project grid -->
+    <div class="project-grid" id="grid"></div>
+
+  </div>
+</section>
+
+<!-- New project modal -->
+<div id="new-modal" class="lp-modal" hidden>
+  <div class="lp-modal-backdrop" data-close></div>
+  <div class="lp-modal-card">
+    <div class="lp-modal-head">
+      <div class="eyebrow">New project</div>
+      <h2>Name your <em>board.</em></h2>
+      <p class="lp-modal-sub">Pick a topic — one chapter of life or work. You can rename it later.</p>
+    </div>
+    <input id="new-name" class="lp-input" placeholder="e.g. Q3 plan, Launch week, Health 2026…" maxlength="80" />
+    <textarea id="new-desc" class="lp-textarea" rows="3" placeholder="A line about what this board is for (optional)" maxlength="240"></textarea>
+    <div class="lp-modal-actions">
+      <button class="btn btn-ghost" data-close type="button">Cancel</button>
+      <button class="btn btn-primary" id="new-create" type="button">Create board</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rename modal -->
+<div id="rename-modal" class="lp-modal" hidden>
+  <div class="lp-modal-backdrop" data-close></div>
+  <div class="lp-modal-card">
+    <div class="lp-modal-head">
+      <div class="eyebrow">Rename</div>
+      <h2>Edit <em>project.</em></h2>
+    </div>
+    <input id="rename-name" class="lp-input" maxlength="80" />
+    <textarea id="rename-desc" class="lp-textarea" rows="3" maxlength="240"></textarea>
+    <div class="lp-modal-actions">
+      <button class="btn btn-ghost" data-close type="button">Cancel</button>
+      <button class="btn btn-primary" id="rename-save" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm delete -->
+<div id="confirm-modal" class="lp-modal" hidden>
+  <div class="lp-modal-backdrop" data-close></div>
+  <div class="lp-modal-card narrow">
+    <div class="lp-modal-head">
+      <div class="eyebrow danger">Delete project</div>
+      <h2 id="confirm-title">Delete this <em>board?</em></h2>
+      <p class="lp-modal-sub">This permanently removes the board and everything on it. This can't be undone.</p>
+    </div>
+    <div class="lp-modal-actions">
+      <button class="btn btn-ghost" data-close type="button">Keep it</button>
+      <button class="btn btn-danger" id="confirm-delete" type="button">Delete forever</button>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <a class="logo" href="index.html">
+      <span class="logo-mark">P</span>
+      <span>Playbook</span>
+    </a>
+    <div style="font-family:var(--serif);font-style:italic;color:rgba(255,255,255,0.5)">
+      Saved on this device.
+    </div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="index.html#faq">FAQ</a>
+      <a href="mailto:hi@playbook.app">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script src="landing.js?v=4"></script>
+</body>
+</html>

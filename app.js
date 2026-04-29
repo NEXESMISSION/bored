@@ -1,9 +1,51 @@
 "use strict";
 
 // ============================================================
+// Project routing — every board lives under ?id=<projectId>.
+// If no id is present we create a fresh project on the fly and
+// rewrite the URL with replaceState — never a redirect that could
+// race with the page render.
+// ============================================================
+const PROJECTS_INDEX_KEY = "mp.projects.v1";
+const PROJECT_ID = (() => {
+  const params = new URLSearchParams(location.search);
+  let id = params.get("id");
+  if (id) return id;
+  // No id — make one, register it, and update the URL silently.
+  id = Math.random().toString(36).slice(2, 10);
+  try {
+    const list = JSON.parse(localStorage.getItem(PROJECTS_INDEX_KEY)) || [];
+    const now = Date.now();
+    list.unshift({ id, name: "Untitled", description: "", createdAt: now, updatedAt: now, count: 0 });
+    localStorage.setItem(PROJECTS_INDEX_KEY, JSON.stringify(list));
+  } catch (_) {}
+  params.set("id", id);
+  window.history.replaceState(null, "", `${location.pathname}?${params.toString()}`);
+  return id;
+})();
+const STORAGE_KEY = `mp.project.${PROJECT_ID}.v1`;
+
+function readProjectsIndex() {
+  try { return JSON.parse(localStorage.getItem(PROJECTS_INDEX_KEY)) || []; }
+  catch (_) { return []; }
+}
+function writeProjectsIndex(list) {
+  try { localStorage.setItem(PROJECTS_INDEX_KEY, JSON.stringify(list)); } catch (_) {}
+}
+function currentProjectMeta() {
+  return readProjectsIndex().find((p) => p.id === PROJECT_ID) || null;
+}
+function bumpProjectMeta(patch) {
+  const list = readProjectsIndex();
+  const i = list.findIndex((p) => p.id === PROJECT_ID);
+  if (i < 0) return;
+  list[i] = { ...list[i], ...patch, updatedAt: Date.now() };
+  writeProjectsIndex(list);
+}
+
+// ============================================================
 // Constants
 // ============================================================
-const STORAGE_KEY = "whiteboard.v3";
 const HISTORY_MAX = 60;
 const SVG_NS = "http://www.w3.org/2000/svg";
 const SNAP_DIST = 28;       // px in canvas-space
@@ -75,6 +117,7 @@ function saveImmediate() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       nodes: state.nodes, pan: state.pan, zoom: state.zoom,
     }));
+    bumpProjectMeta({ count: state.nodes.length });
   } catch (_) {}
 }
 function load() {
@@ -4288,6 +4331,44 @@ if (fEl.shapeRadius) {
 }
 
 // ============================================================
+// Project header — populate brand name from index, allow inline rename.
+// ============================================================
+function paintBrand() {
+  const meta = currentProjectMeta();
+  const nameEl = document.getElementById("brand-name");
+  const subEl = document.getElementById("brand-sub");
+  if (nameEl) nameEl.textContent = meta && meta.name ? meta.name : "Untitled";
+  if (subEl) subEl.textContent = meta && meta.description ? meta.description : "Playbook";
+  document.title = `${meta && meta.name ? meta.name : "Untitled"} · Playbook`;
+}
+function promptRename() {
+  const meta = currentProjectMeta();
+  const next = window.prompt("Rename project", (meta && meta.name) || "Untitled");
+  if (next === null) return;
+  const name = next.trim().slice(0, 80) || "Untitled";
+  bumpProjectMeta({ name });
+  paintBrand();
+}
+const brandRenameBtn = document.getElementById("btn-rename");
+if (brandRenameBtn) brandRenameBtn.addEventListener("click", promptRename);
+const brandTextEl = document.querySelector(".brand-text");
+if (brandTextEl) {
+  brandTextEl.setAttribute("title", "Click to rename");
+  brandTextEl.addEventListener("click", promptRename);
+}
+
+// If a project id is in the URL but no entry exists in the index yet,
+// register one. Covers people who land on /board?id=… via a stale link
+// or migrate from the old single-board storage.
+(function ensureProjectInIndex() {
+  const list = readProjectsIndex();
+  if (list.some((p) => p.id === PROJECT_ID)) return;
+  const now = Date.now();
+  list.unshift({ id: PROJECT_ID, name: "Untitled", description: "", createdAt: now, updatedAt: now, count: 0 });
+  writeProjectsIndex(list);
+})();
+
+// ============================================================
 // Init
 // ============================================================
 loadShortcuts();
@@ -4296,3 +4377,4 @@ load();
 render();
 applyTransform();
 pushHistory();
+paintBrand();

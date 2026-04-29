@@ -258,9 +258,41 @@ button { cursor: pointer; }
   user-select: none;
   -webkit-user-drag: none;
 }
-.brand-text { line-height: 1.1; }
-.brand-name { font-weight: 500; font-size: 14px; letter-spacing: -0.012em; color: var(--ink); }
-.brand-sub { font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 400; }
+.brand-text {
+  line-height: 1.1;
+  max-width: 220px;
+  cursor: pointer;
+  padding: 4px 6px;
+  margin: -4px -2px;
+  border-radius: 8px;
+  transition: background .15s ease;
+}
+.brand-text:hover { background: rgba(14,15,12,.04); }
+.brand-name { font-weight: 500; font-size: 14px; letter-spacing: -0.012em; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-sub { font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  color: var(--muted);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+  flex: none;
+}
+.brand-back:hover {
+  color: var(--ink);
+  background: rgba(14,15,12,.04);
+  border-color: var(--line, rgba(14,15,12,.08));
+}
+.brand-rename {
+  margin-left: 2px;
+  color: var(--muted);
+  flex: none;
+}
+.brand-rename:hover { color: var(--ink); }
 
 /* ---- Zoom bar ---- */
 .zoom-label {
